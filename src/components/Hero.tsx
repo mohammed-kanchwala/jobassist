@@ -19,6 +19,7 @@ export default function Hero({ onGetStarted }: HeroProps) {
           transition={{ duration: 0.8 }}
           className="text-5xl md:text-7xl font-bold mb-6"
         >
+          
           Hire Smarter with AI
         </motion.h1>
         <motion.p

@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft } from "lucide-react"
 import { FcGoogle } from 'react-icons/fc'
-import { signIn, useSession } from 'next-auth/react'
+import { signIn, useSession, getSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { signInSupabase, signUpSupabase } from '../lib/auth';
+import { supabase } from '../lib/supabaseClient';
 
 interface AuthScreenProps {
   onClose: () => void;
@@ -84,7 +85,8 @@ export default function AuthScreen({ onClose }: AuthScreenProps) {
 
   const handleGoogleSignIn = async () => {
     try {
-      const result = await signIn('google', { callbackUrl: '/' });
+      const result = await signIn('google', { callbackUrl: 'https://rnmpfnjnvykncgwjecql.supabase.co/auth/v1/callback' });
+      await addUserDetails();
       if (result?.error) {
         console.error('Error during Google sign-in:', result.error);
         setErrors({ email: 'Error while signing in with Google' });
@@ -95,7 +97,25 @@ export default function AuthScreen({ onClose }: AuthScreenProps) {
     }
   };
 
-
+const addUserDetails = async () => {
+  const session = await getSession();
+  if (session?.user) {
+    const names = session.user.name?.split(' ') || ['', ''];
+    const { data, error } = await supabase.from('users').upsert({
+      first_name: names[0],
+      last_name: names.slice(1).join(' '),
+      email: session.user.email,
+      profile_picture: session.user.image,
+    }, {
+      onConflict: 'user_id',
+    });
+    if (error) {
+      console.error('Error adding user details to DB', error);
+    } else {
+      console.log('User details added to DB', data);
+    }
+  }
+};
   if (!isMounted) {
     return null // or a loading indicator
   }

@@ -22,7 +22,21 @@ export const signInSupabase = async (email : string, password : string) => {
 };
 
 export const signUpSupabase = async (fullname : string, email : string, password : string) => {
+  console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+  console.log('Anon Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
+  const names = fullname.split(' ') || ['', ''];
+  const first_name = names[0];
+  const last_name = names.slice(1).join(' ');
   const { error } = await supabase.auth.signUp({ email, password });
+  const { data, error: userError } = await supabase.from('users').upsert({
+    first_name,
+    last_name,
+    email,
+    password: password,
+    profile_picture: '',
+  });
+
   if (error) throw error;
   redirect("/JobListing");
 };
