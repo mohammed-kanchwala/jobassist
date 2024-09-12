@@ -4,42 +4,49 @@ import JobListing from '@/components/JobListing'
 import Header from '@/components/Header'
 import Hero from '@/components/Hero'
 import Features from '@/components/Features'
+import JobBoard from '@/components/JobBoard'
+import Testimonials from '@/components/Testimonial'
+import FAQ from '@/components/faq'
+import CTA from '@/components/CTA'
 import Pricing from '@/components/Pricing'
 import Footer from '@/components/Footer'
 import AuthScreen from '@/components/AuthScreen'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radiogroup"
+import { ArrowRight, CheckCircle, Menu, Star, X, Mail, Lock } from 'lucide-react'
 
 export default function Home() {
   const { data: session, status } = useSession()
-  const [showAuthScreen, setShowAuthScreen] = useState(false)
-
-  const handleGetStarted = () => {
-    setShowAuthScreen(true)
-  }
-
-  const handleCloseAuthScreen = () => {
-    setShowAuthScreen(false)
-  }
-
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
+  const [isModalOpen, setIsModalOpen] = useState(false)
   if (status === "loading") {
     return <div>Loading...</div>
   }
-
-  if (session) {
-    return <JobListing />
+  const handleAuthSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    // Handle authentication logic here
+    console.log(`${authMode} submitted`)
+    setIsModalOpen(false)
   }
 
   return (
     <div className="min-h-screen bg-[#0d0d0d] text-white overflow-hidden">
-      {showAuthScreen && <AuthScreen onClose={() => setShowAuthScreen(false)} />}
-      <Header onGetStarted={handleGetStarted} />
+      <Header />
       <main>
-        <Hero onGetStarted={handleGetStarted} />
+        <Hero />
         <Features />
-        <Pricing />
+        <JobBoard />
+        <Testimonials />
+        <FAQ />
+        <CTA />
+        {/* <Pricing /> */}
       </main>
       <Footer />
-      {showAuthScreen && <AuthScreen onClose={handleCloseAuthScreen} />}
     </div>
   )
 }

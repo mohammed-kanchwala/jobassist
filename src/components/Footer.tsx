@@ -1,40 +1,30 @@
 export default function Footer() {
     return (
-      <footer className="bg-[#1a1a1a] text-white py-12">
+      <>
+      {/* Footer */}
+      <footer className="bg-gray-800 py-12 text-white">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-lg font-bold mb-4">JobAssist</h3>
-              <p className="text-gray-400">AI-powered hiring solutions</p>
+              <h3 className="text-xl font-semibold mb-4">JobRight</h3>
+              <p className="text-gray-300">AI-powered job search platform</p>
             </div>
-            <div>
-              <h4 className="text-lg font-bold mb-4">Features</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white">AI Screening</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Interview Assistance</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Bias Reduction</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-bold mb-4">Company</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white">About Us</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Careers</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-bold mb-4">Legal</h4>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white">Privacy Policy</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Terms of Service</a></li>
-              </ul>
-            </div>
+            {['Company', 'Resources', 'Legal'].map((category, index) => (
+              <div key={index}>
+                <h3 className="text-xl font-semibold mb-4">{category}</h3>
+                <ul className="space-y-2">
+                  {['About', 'Careers', 'Contact'].map((item, idx) => (
+                    <li key={idx}><a href="#" className="text-gray-300 hover:text-white transition-colors">{item}</a></li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
-          <div className="mt-8 pt-8 border-t border-[#333] text-center text-gray-400">
-            © 2023 JobAssist. All rights reserved.
+          <div className="mt-12 pt-8 border-t border-gray-700 text-center text-gray-300">
+            <p>&copy; 2023 JobRight. All rights reserved.</p>
           </div>
         </div>
       </footer>
+      </>
     )
   }

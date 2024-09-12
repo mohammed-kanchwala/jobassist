@@ -1,47 +1,25 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { Button } from "@/components/ui/button"
-import { ArrowBigRight, ArrowRight } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 
-interface HeroProps {
-  onGetStarted: () => void;
-}
-
-export default function Hero({ onGetStarted }: HeroProps) {
+export default function Hero() {
   return (
-    <section className="hero min-h-screen flex items-center justify-center relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-[#8b5cf6]/20 to-[#0d0d0d]"></div>
-      <div className="container mx-auto px-4 text-center relative z-10">
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-5xl md:text-7xl font-bold mb-6"
-        >
-          
-          Hire Smarter with AI
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-xl md:text-2xl text-gray-300 mb-8"
-        >
-          Transform your hiring process with our AI-powered platform
-        </motion.p>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-        >
-          <Button size="lg" className="bg-[#8b5cf6] text-white hover:bg-[#7c3aed]" onClick={onGetStarted}>
-            Get Started
-            <ArrowRight className="ml-2 h-5 w-5" />
+    <>
+    {/* Hero Section */}
+    <section className="pt-32 pb-20 bg-gradient-to-br from-purple-100 to-pink-100 relative overflow-hidden">
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 text-gray-800 animate-gradient bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            AI-Powered Job Search
+          </h1>
+          <p className="text-xl md:text-2xl mb-8 text-gray-600">
+            Find your dream job with the power of artificial intelligence
+          </p>
+          <Button className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-full text-lg relative z-10 transition-transform hover:scale-105">
+            Get Started <ArrowRight className="ml-2" />
           </Button>
-        </motion.div>
-      </div>
-      <div className="absolute inset-0 bg-[url('/placeholder.svg')] bg-cover bg-center opacity-10"></div>
-    </section>
+        </div>
+      </section>
+    </>
   )
 }
