@@ -17,36 +17,33 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radiogroup"
-import { ArrowRight, CheckCircle, Menu, Star, X, Mail, Lock } from 'lucide-react'
+import { ArrowRight, CheckCircle, Menu, Star, X, Mail, Lock, LucideLoaderCircle } from 'lucide-react'
 
 export default function Home() {
   const { data: session, status } = useSession()
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+
   if (status === "loading") {
-    return <div>Loading...</div>
-  }
-  const handleAuthSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    // Handle authentication logic here
-    console.log(`${authMode} submitted`)
-    setIsModalOpen(false)
+    return (
+      <div className='center'>
+        <LucideLoaderCircle />
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-[#0d0d0d] text-white overflow-hidden">
-      <Header />
-      <main>
-        <Hero />
-        <Features />
-        <JobBoard />
-        <Testimonials />
-        <FAQ />
-        <CTA />
-        {/* <Pricing /> */}
-      </main>
-      <Footer />
+    <Header />
+    <main>
+      <Hero />
+      <Features />
+      <JobBoard />
+      <Testimonials />
+      <FAQ />
+      <CTA />
+      {/* <Pricing /> */}
+    </main>
+    <Footer />
     </div>
   )
 }

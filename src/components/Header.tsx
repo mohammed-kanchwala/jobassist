@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Menu, X, Mail, Lock } from "lucide-react"
 import Link from 'next/link'
+import { login, signup } from '../app/login/action'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -13,7 +14,15 @@ export default function Header() {
 
   const handleAuthSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // Handle authentication logic here
+    const email = (e.currentTarget.elements.namedItem('email') as HTMLInputElement).value;
+    const password = (e.currentTarget.elements.namedItem('password') as HTMLInputElement).value;
+
+  if (authMode === 'signin') {
+    console.log("login step")
+    login(email, password); 
+  } else {
+    signup(email, password);
+  }
     console.log(`${authMode} submitted`)
     setIsModalOpen(false)
   }
@@ -103,10 +112,10 @@ export default function Header() {
             <Link href="#" className="text-gray-600 hover:text-purple-600 transition-colors">Features</Link>
             <Link href="#" className="text-gray-600 hover:text-purple-600 transition-colors">Pricing</Link>
             <Link href="#" className="text-gray-600 hover:text-purple-600 transition-colors">Contact</Link>
-            <Button variant="outline" className="text-purple-600 border-purple-600 hover:bg-purple-100" onClick={() => { setAuthMode('signin'); setIsModalOpen(true); }}>
+            <Button variant="outline" className="text-purple-600 border-purple-600 hover:bg-purple-100" onClick={() => { setAuthMode('signin'); setIsModalOpen(true);  }}>
               Log In
             </Button>
-            <Button className="bg-purple-600 text-white hover:bg-purple-700" onClick={() => { setAuthMode('signup'); setIsModalOpen(true); }}>
+            <Button className="bg-purple-600 text-white hover:bg-purple-700" onClick={() => { setAuthMode('signup'); setIsModalOpen(true);  }}>
               Sign Up
             </Button>
           </nav>

@@ -12,7 +12,7 @@ const DialogPortal = ({
   className = "", // Default to an empty string if className is not provided
   ...props
 }: DialogPrimitive.DialogPortalProps & { className?: string }) => (
-  <DialogPrimitive.Portal className={cn(className)} {...props} />
+  <DialogPrimitive.Portal {...props} className={cn(className)} />
 )
 DialogPortal.displayName = DialogPrimitive.Portal.displayName
 
