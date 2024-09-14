@@ -1,41 +1,54 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LucideLoaderCircle, Linkedin, FileUp, Download, Trash2, Gift } from 'lucide-react'
 import ChatBot from '@/components/chatbot'
 import SidePanel from '@/components/sidepanel'
-import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
+import { createClient } from '@/utils/supabase/client'
+import { useRouter } from 'next/navigation'
+import { User } from '@supabase/supabase-js'
 
-export default async function ProfilePage() {
-  const supabase = createClient()
-
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data?.user) {
-    redirect('/')
-  }
-
+export default function ProfilePage() {
+  const [user, setUser] = useState<User | null>(null)
+  const router = useRouter()
   const [linkedinUrl, setLinkedinUrl] = useState('https://www.linkedin.com/in/johndoe')
-  const [resumeFile, setResumeFile] = useState<File | null>(null)
+  const [resumeFile, setResumeFile] = useState(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    
+    async function getUser() {
+      const { data, error } = await supabase.auth.getUser()
+      if (error || !data?.user) {
+        router.push('/')
+      } else {
+        setUser(data.user)
+      }
+    }
+
+    getUser()
+  }, [router])
 
   const handleLinkedinUpdate = () => {
     console.log('LinkedIn URL updated:', linkedinUrl)
   }
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setResumeFile(event.target.files[0])
-    }
+  const handleFileChange = () => {
+    // if (event.target.files && event.target.files[0]) {
+    //   setResumeFile(event.target.files[0])
+    // }
   }
 
   const handleResumeUpload = () => {
-    if (resumeFile) {
-      console.log('Resume uploaded:', resumeFile.name)
-    }
+    // if (resumeFile) {
+    //   console.log('Resume uploaded:', resumeFile.name)
+    // }
   }
+
+  if (!user) return null // or a loading spinner
 
   return (
     <div className="flex min-h-screen bg-gray-100">

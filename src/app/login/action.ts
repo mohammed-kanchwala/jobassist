@@ -3,19 +3,17 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
-import { createClient } from '@/utils/supabase/server'
+import { createServerSupabaseClient } from '@/utils/supabase/server'
 
 export async function login(email: string, password: string) {
-  const supabase = createClient()
+  const supabase = createServerSupabaseClient()
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: email,
     password: password,
-  }
+  })
 
-  const { error } = await supabase.auth.signInWithPassword(data)
+  console.log('login'+data)
 
   if (error) {
     redirect('/error')
@@ -26,21 +24,22 @@ export async function login(email: string, password: string) {
 }
 
 export async function signup(email: string, password: string) {
-  const supabase = createClient()
+  const supabase = createServerSupabaseClient()
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
+  const { data, error } = await supabase.auth.signUp({
     email: email,
     password: password,
-  }
-
-  const { error } = await supabase.auth.signUp(data)
+    options: {
+      emailRedirectTo: 'http://localhost:3001/profile',
+    },
+  })
+  
+  console.log('sign up'+data)
 
   if (error) {
     redirect('/error')
   }
 
   revalidatePath('/', 'layout')
-  redirect('/jobs')
+  redirect('/profile')
 }

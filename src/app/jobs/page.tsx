@@ -1,14 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { MoreHorizontal, MapPin, Clock, Building2, Calendar, CheckCircle , LucideLoaderCircle } from 'lucide-react'
 import SidePanel from '@/components/sidepanel'
 import ChatBot from '@/components/chatbot'
-import { type User } from '@supabase/supabase-js'
-import { createClient } from '@/utils/supabase/server'
+import { createClient } from '@/utils/supabase/client'
 import { redirect } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import { User } from '@supabase/supabase-js'
 
 
 const jobListings = [
@@ -83,15 +84,29 @@ const CircularProgressBar = ({ percentage }: { percentage: number }) => {
   )
 }
 
-export default async function JobSearchPage({ user }: { user: User | null }) {
+export default function JobSearchPage() {
   const supabase = createClient()
-
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data?.user) {
-    redirect('/')
-  }
-
+  const [user, setUser] = useState<User | null>(null)
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState("Recommended")
+
+  useEffect(() => {
+    const supabase = createClient()
+    
+    async function getUser() {
+      const { data, error } = await supabase.auth.getUser()
+      if (error || !data?.user) {
+        router.push('/')
+      } else {
+        setUser(data.user)
+      }
+    }
+
+    getUser()
+  }, [router])
+
+  if (!user) return null // or a loading spinner
+
 
   return (
     <>

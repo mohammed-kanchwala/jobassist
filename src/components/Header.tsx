@@ -20,11 +20,14 @@ export default function Header() {
     const email = (e.currentTarget.elements.namedItem('email') as HTMLInputElement).value;
     const password = (e.currentTarget.elements.namedItem('password') as HTMLInputElement).value;
 
-  if (authMode === 'signin') {
-     login(email, password); 
-  } else {
-    signup(email, password);
-  }
+    if (authMode === 'signin') {
+      console.log('login from headers')
+      login(email, password); 
+    } else {
+      console.log('signup from headers')
+      signup(email, password);
+    }
+
     console.log(`${authMode} submitted`)
     setIsModalOpen(false)
   }
