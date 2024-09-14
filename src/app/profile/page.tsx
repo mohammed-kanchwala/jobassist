@@ -7,10 +7,16 @@ import { Label } from "@/components/ui/label"
 import { LucideLoaderCircle, Linkedin, FileUp, Download, Trash2, Gift } from 'lucide-react'
 import ChatBot from '@/components/chatbot'
 import SidePanel from '@/components/sidepanel'
+import { createClient } from '@/utils/supabase/server'
+import { redirect } from 'next/navigation'
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+  const supabase = createClient()
 
-
+  const { data, error } = await supabase.auth.getUser()
+  if (error || !data?.user) {
+    redirect('/')
+  }
 
   const [linkedinUrl, setLinkedinUrl] = useState('https://www.linkedin.com/in/johndoe')
   const [resumeFile, setResumeFile] = useState<File | null>(null)

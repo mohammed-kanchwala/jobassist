@@ -6,11 +6,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Menu, X, Mail, Lock } from "lucide-react"
 import Link from 'next/link'
 import { login, signup } from '../app/login/action'
+import { supabase } from '@/lib/supabaseClient'
+import { useRouter } from 'next/navigation'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
+  const router = useRouter()
 
   const handleAuthSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -18,8 +21,7 @@ export default function Header() {
     const password = (e.currentTarget.elements.namedItem('password') as HTMLInputElement).value;
 
   if (authMode === 'signin') {
-    console.log("login step")
-    login(email, password); 
+     login(email, password); 
   } else {
     signup(email, password);
   }

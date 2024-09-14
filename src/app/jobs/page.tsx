@@ -7,6 +7,8 @@ import { MoreHorizontal, MapPin, Clock, Building2, Calendar, CheckCircle , Lucid
 import SidePanel from '@/components/sidepanel'
 import ChatBot from '@/components/chatbot'
 import { type User } from '@supabase/supabase-js'
+import { createClient } from '@/utils/supabase/server'
+import { redirect } from 'next/navigation'
 
 
 const jobListings = [
@@ -81,7 +83,14 @@ const CircularProgressBar = ({ percentage }: { percentage: number }) => {
   )
 }
 
-export default function JobSearchPage({ user }: { user: User | null }) {
+export default async function JobSearchPage({ user }: { user: User | null }) {
+  const supabase = createClient()
+
+  const { data, error } = await supabase.auth.getUser()
+  if (error || !data?.user) {
+    redirect('/')
+  }
+
   const [activeTab, setActiveTab] = useState("Recommended")
 
   return (

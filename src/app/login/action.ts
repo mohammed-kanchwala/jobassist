@@ -2,12 +2,14 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+
 import { createClient } from '@/utils/supabase/server'
 
 export async function login(email: string, password: string) {
   const supabase = createClient()
 
-  console.log("calling supabase login")
+  // type-casting here for convenience
+  // in practice, you should validate your inputs
   const data = {
     email: email,
     password: password,
@@ -16,8 +18,7 @@ export async function login(email: string, password: string) {
   const { error } = await supabase.auth.signInWithPassword(data)
 
   if (error) {
-    console.log("Error while user login")
-    return redirect('/')
+    redirect('/error')
   }
 
   revalidatePath('/', 'layout')
@@ -26,6 +27,9 @@ export async function login(email: string, password: string) {
 
 export async function signup(email: string, password: string) {
   const supabase = createClient()
+
+  // type-casting here for convenience
+  // in practice, you should validate your inputs
   const data = {
     email: email,
     password: password,
