@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Menu, X, Mail, Lock } from "lucide-react"
 import Link from 'next/link'
 import { login, signup } from '../app/login/action'
-import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
 
 export default function Header() {

@@ -32,6 +32,7 @@ export async function signup(email: string, password: string) {
     options: {
       emailRedirectTo: 'http://localhost:3001/profile',
     },
+    
   })
   
   console.log('sign up'+data)

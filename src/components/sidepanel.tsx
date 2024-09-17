@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Briefcase, FileText, User, HelpCircle, LogOut, Gift, LucideLoaderCircle } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation' 
+import { logout } from '@/app/logout/action'
 
 export default function SidePanel () {
   const router = useRouter();
@@ -12,12 +13,8 @@ export default function SidePanel () {
   }
 
   const handleLogout = async () => {
-    
-    const logout = async () => {
-      await supabase.auth.signOut()
-      router.push('/')
-    } 
-
+    console.log('logout called')
+    logout()
   }
 
   return (
@@ -41,7 +38,7 @@ export default function SidePanel () {
       <Link href="#" onClick={handleFeedback} className="text-gray-400 hover:text-purple-600">
         <HelpCircle className="w-6 h-6" />
       </Link>
-      <Link href="#" onClick={handleLogout} className="text-gray-400 hover:text-purple-600">
+      <Link href="/" onClick={handleLogout} className="text-gray-400 hover:text-purple-600">
         <LogOut className="w-6 h-6" />
       </Link>
     </aside>      
