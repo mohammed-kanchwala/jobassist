@@ -22,9 +22,11 @@ export default function SidePanel () {
     <aside className="w-16 bg-white border-r border-gray-200 flex flex-col items-center py-4 space-y-6">
       
       <nav className="flex flex-col items-center space-y-6">
-      <Link href="/jobs" className={`${pathname === '/jobs' ? 'w-10 h-10 bg-purple-700 rounded-full flex items-center justify-center' : 'text-gray-400 hover:text-purple-600'} `}>            <Briefcase className="w-6 h-6" />
+      <Link href="/jobs" className={`${pathname === '/jobs' ? 'w-10 h-10 bg-purple-700 rounded-full flex items-center justify-center' : 'text-gray-400 hover:text-purple-600'} `}>
+        <Briefcase className="w-6 h-6" />
         </Link>
-        <Link href="/resume" className={`${pathname === '/resume' ? 'w-10 h-10 bg-purple-700 rounded-full flex items-center justify-center' : 'text-gray-400 hover:text-purple-600'} `}>            <FileText className="w-6 h-6" />
+        <Link href="/resume" className={`${pathname === '/resume' ? 'w-10 h-10 bg-purple-700 rounded-full flex items-center justify-center' : 'text-gray-400 hover:text-purple-600'} `}>
+        <FileText className="w-6 h-6" />
         </Link>
         <Link href="/profile" className={`${pathname === '/profile' ? 'w-10 h-10 bg-purple-700 rounded-full flex items-center justify-center' : 'text-gray-400 hover:text-purple-600'} `}>
           <User className="w-6 h-6" />

@@ -3,18 +3,17 @@
 import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, MapPin, Clock, Building2, Calendar, CheckCircle, Filter } from 'lucide-react'
+import { MoreHorizontal, MapPin, Clock, Building2, Calendar, CheckCircle, Filter, FileText } from 'lucide-react'
 import SidePanel from '@/components/sidepanel'
 import ChatBot from '@/components/chatbot'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { User } from '@supabase/supabase-js'
 import { fetchJobs } from './action'
-
-const filterOptions = [
-  "Account Manager", "Full-time", "Within US", "Senior Level", "Director", "Onsite",
-  "Remote", "Hybrid", "50 miles"
-]
+import { Checkbox } from "@/components/ui/checkbox"
+import  Select  from 'react-select'
+import { Input } from "@/components/ui/input"
+// import { Slider } from "@/components/ui/slider"
 
 const CircularProgressBar = ({ percentage }: { percentage: number }) => {
   const circumference = 2 * Math.PI * 18;
@@ -60,28 +59,54 @@ export default function JobSearchPage() {
   const [jobListings, setJobListings] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
-  const [filters, setFilters] = useState({
-    query: localStorage.getItem('jobTitle') || 'Web Developer',
-    location: localStorage.getItem('jobLocation') || 'India',
-    remoteOnly: localStorage.getItem('remoteOnly') || 'false',
-    datePosted:  'month',
-    employmentTypes: localStorage.getItem('jobTypes') || 'fulltime;parttime;intern;contractor',
+  const [filters, setFilters] = useState<{
+    jobTitles: string[];
+    jobType: string[];
+    workModel: string[];
+    datePosted: string;
+  }>({
+    jobTitles: [],
+    jobType: [],
+    workModel: [],
+    datePosted: '',
   })
 
   useEffect(() => {
     const supabase = createClient()
     
-    async function getUser() {
-      const { data, error } = await supabase.auth.getUser()
-      if (error || !data?.user) {
+    async function getUserPreferences() {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+      if (user) {
+        console.log('user: ', user)
+        const { data: preferences, error } = await supabase
+          .from('UserPreferences')
+          .select('*')
+          .eq('user_id', user.id)
+          .single()
+
+        if (error) {
+          console.error('Error fetching user preferences:', error)
+        } else if (preferences) {
+          console.log('preferences: ', preferences)
+          setFilters({
+            jobTitles: preferences.preferred_positions || [],
+            jobType: preferences.preferred_job_types || [],
+            workModel: preferences.preferred_locations || [],
+            // location: preferences.preferred_locations?.[0] || '',
+            // experienceLevel: preferences.preferred_experience_levels || [],
+            // requiredExperience: [0, 11],
+            datePosted: 'month',
+          })
+        }
+      }
+      else {
         router.push('/')
-      } else {
-        setUser(data.user)
       }
     }
 
-    getUser()
-  }, [router])
+    getUserPreferences()
+  }, [])
 
   useEffect(() => {
     handleFetchJobs()
@@ -93,17 +118,30 @@ export default function JobSearchPage() {
       const response = await fetchJobs(filters)
       const data = await response.json()
       console.log('data from rapidapi: ', data)
-      setJobListings(data.jobs || [])
+      if (Array.isArray(data.jobs)) {
+        setJobListings(data.jobs)
+        console.log('jobs from rapidapi: ', data.jobs)
+      } else {
+        console.error('Unexpected data structure:', data)
+        setJobListings([])
+      }
     } catch (error) {
       console.error('Error fetching jobs:', error)
+      setJobListings([])
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleFilterChange = (key: string, value: string) => {
+  const handleFilterChange = (key: string, value: any) => {
     setFilters(prevFilters => ({ ...prevFilters, [key]: value }))
   }
+
+  const handleGenerateResume = () => {
+    
+    console.log('generate resume')
+  }
+
 
   if (!user) return null 
 
@@ -149,66 +187,186 @@ export default function JobSearchPage() {
                 <div className="text-center py-4">Loading jobs...</div>
               ) : (
                 <div className="space-y-6">
-                  {jobListings.map((job: any) => (
-                    <div key={job.id} className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center">
-                          <img src={job.image || "/placeholder.svg?height=40&width=40"} alt={job.company} className="w-12 h-12 rounded-full mr-4" />
-                          <div>
-                            <h2 className="text-xl font-semibold text-gray-800">{job.title}</h2>
-                            <p className="text-gray-600">{job.company}</p>
+                  {jobListings.length === 0 ? (
+                    <div className="text-center py-4">No jobs found</div>
+                  ) : (
+                    jobListings.map((job: any) => (
+                      <div key={job.id} className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex items-center">
+                            <img src={job.image || "/placeholder.svg?height=40&width=40"} alt={job.company} className="w-12 h-12 rounded-full mr-4" />
+                            <div>
+                              <h2 className="text-xl font-semibold text-gray-800">{job.title}</h2>
+                              <p className="text-gray-600">{job.company}</p>
+                            </div>
+                          </div>
+                          <Button variant="ghost">
+                            <MoreHorizontal className="w-5 h-5" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
+                          <div className="flex items-center">
+                            <MapPin className="w-4 h-4 mr-1" />
+                            {job.location}
+                          </div>
+                          <div className="flex items-center">
+                            <Clock className="w-4 h-4 mr-1" />
+                            {job.employmentType}
+                          </div>
+                          <div className="flex items-center">
+                            <Calendar className="w-4 h-4 mr-1" />
+                            {job.datePosted}
                           </div>
                         </div>
-                        <Button variant="ghost">
-                          <MoreHorizontal className="w-5 h-5" />
-                        </Button>
-                      </div>
-                      <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
-                        <div className="flex items-center">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {job.location}
-                        </div>
-                        <div className="flex items-center">
-                          <Clock className="w-4 h-4 mr-1" />
-                          {job.employmentType}
-                        </div>
-                        <div className="flex items-center">
-                          <Calendar className="w-4 h-4 mr-1" />
-                          {job.datePosted}
+                        <div className="flex justify-between items-center">
+                          {job.salaryRange && <p className="text-sm text-gray-500">{job.salaryRange}</p>}
+                          <div className="flex space-x-2">
+                            <Button variant="outline" className="text-gray-600">
+                              Ask JobAssist
+                            </Button>
+                            <Button variant="outline" className="text-gray-600" onClick={handleGenerateResume}>
+                            <FileText className="w-6 h-6" />  Generate Custom Resume
+                            </Button>
+                            <Button className="bg-purple-600 hover:bg-purple-700">
+                              Apply Now
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex justify-between items-center">
-                        {job.salaryRange && <p className="text-sm text-gray-500">{job.salaryRange}</p>}
-                        <div className="flex space-x-2">
-                          <Button variant="outline" className="text-gray-600">
-                            Ask JobAssist
-                          </Button>
-                          <Button className="bg-purple-600 text-white hover:bg-purple-700">
-                            Apply Now
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               )}
             </div>
           </main>
           {showFilters && (
-            <div className="w-64 bg-white p-4 shadow-lg">
-              <h2 className="text-lg font-semibold mb-4">Filters</h2>
-              {Object.entries(filters).map(([key, value]) => (
-                <div key={key} className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">{key}</label>
-                  <input
-                    type="text"
-                    value={value}
-                    onChange={(e) => handleFilterChange(key, e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            <div className="w-80 bg-white p-6 shadow-lg overflow-y-auto h-screen">
+              <h2 className="text-xl font-semibold mb-6">Filters</h2>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Job Title</label>
+                  <Select
+                    isMulti
+                    options={[...filters.jobTitles.map(title => ({ value: title, label: title })), { value: 'add', label: '+ Add' }]}
+                    onChange={(selected: any) => {
+                      if (selected.some((option: any) => option.value === 'add')) {
+                        const newTitle = prompt('Enter new job title:')
+                        if (newTitle) {
+                          handleFilterChange('jobTitles', [...filters.jobTitles, newTitle])
+                        }
+                      } else {
+                        handleFilterChange('jobTitles', selected.map((option: any) => option.value))
+                      }
+                    }}
+                    placeholder="Select or add job titles"
                   />
                 </div>
-              ))}
-              <Button onClick={fetchJobs} className="w-full">Apply Filters</Button>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Job Type</label>
+                  <div className="space-y-2">
+                    {['Full-time', 'Part-time', 'Contract', 'Internship'].map((type) => (
+                      <div key={type} className="flex items-center">
+                        <Checkbox
+                          checked={filters.jobType.includes(type)}
+                          onCheckedChange={(checked: any) => {
+                            if (checked) {
+                              handleFilterChange('jobType', [...filters.jobType, type])
+                            } else {
+                              handleFilterChange('jobType', filters.jobType.filter(t => t !== type))
+                            }
+                          }}
+                        />
+                        <label className="ml-2 text-sm">{type}</label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Work Model</label>
+                  <div className="space-y-2">
+                    {['Onsite', 'Remote', 'Hybrid'].map((model) => (
+                      <div key={model} className="flex items-center">
+                        <Checkbox
+                          checked={filters.workModel.includes(model)}
+                          onCheckedChange={(checked: boolean) => {
+                            if (checked) {
+                              handleFilterChange('workModel', [...filters.workModel, model])
+                            } else {
+                              handleFilterChange('workModel', filters.workModel.filter(m => m !== model))
+                            }
+                          }}
+                        />
+                        <label className="ml-2 text-sm">{model}</label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/*<div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                  <Input
+                    type="text"
+                    value={filters.location}
+                    onChange={(e) => handleFilterChange('location', e.target.value)}
+                    placeholder="Select a city"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Experience Level</label>
+                  <div className="space-y-2">
+                    {['Intern Level', 'Entry Level', 'Mid Level', 'Senior Level', 'Director', 'Executive'].map((level) => (
+                      <Checkbox
+                        key={level}
+                        checked={filters.experienceLevel.includes(level)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            handleFilterChange('experienceLevel', [...filters.experienceLevel, level])
+                          } else {
+                            handleFilterChange('experienceLevel', filters.experienceLevel.filter(l => l !== level))
+                          }
+                        }}
+                        label={level}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Required Experience</label>
+                  <Slider
+                    min={0}
+                    max={11}
+                    step={1}
+                    value={filters.requiredExperience}
+                    onValueChange={(value) => handleFilterChange('requiredExperience', value)}
+                  />
+                  <div className="flex justify-between text-sm text-gray-600 mt-2">
+                    <span>{filters.requiredExperience[0]} years</span>
+                    <span>{filters.requiredExperience[1]} years</span>
+                  </div>
+                </div> 
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Date Posted</label>
+                  <Select
+                    options={[
+                      { value: 'past24hours', label: 'Past 24 hours' },
+                      { value: 'past3days', label: 'Past 3 days' },
+                      { value: 'pastWeek', label: 'Past Week' },
+                      { value: 'pastMonth', label: 'Past Month' },
+                    ]}
+                    value={filters.datePosted}
+                    onChange={(value) => handleFilterChange('datePosted', value)}
+                    placeholder="Select date range"
+                  />
+                </div>*/}
+              </div>
+
+              <Button onClick={handleFetchJobs} className="w-full mt-6">Apply Filters</Button>
             </div>
           )}
           <ChatBot />

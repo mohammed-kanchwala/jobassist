@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Upload, Plus, HelpCircle, LogOut, ArrowRight, X } from "lucide-react"
+import { Upload, Plus, HelpCircle, LogOut, ArrowRight, X, Loader2 } from "lucide-react"
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
@@ -32,6 +32,8 @@ export default function JobSearchForm() {
   const [file, setFile] = useState<File | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const supabase = createClient()
+
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     const checkUser = async () => {
@@ -62,32 +64,104 @@ export default function JobSearchForm() {
     event.preventDefault()
     if (!userId) {
       console.error('User not authenticated')
+      router.push('/')
       return
     }
 
-    const jobPreferences = {
-      user_id: userId,
-      job_titles: jobTitles,
-      job_types: Object.entries(jobTypes)
-        .filter(([_, value]) => value)
-        .map(([key, _]) => key),
-      location_preferences: Object.entries(locationPreferences)
-        .filter(([_, value]) => value)
-        .map(([key, _]) => key),
-      resume_filename: file ? file.name : null
-    }
+    setIsLoading(true)
 
     try {
-      const { error } = await supabase
+      let parsedResumeData = null;
+      if (file && file.type === 'application/pdf') {
+        // Check local storage first
+        const storedData = localStorage.getItem(`resumeData_${userId}`);
+        if (storedData) {
+          parsedResumeData = JSON.parse(storedData);
+          console.log('Retrieved parsed resume data from local storage');
+        } else {
+          // If not in local storage, call RapidAPI
+          const formData = new FormData();
+          formData.append('file', file);
+
+          const url = 'https://ai-resume-parser-extractor.p.rapidapi.com/resume/file';
+          const options = {
+            method: 'POST',
+            headers: {
+              'x-rapidapi-key': 'd1915a5fefmsh73621f73961cb94p1fbceajsn985f05129535',
+              'x-rapidapi-host': 'ai-resume-parser-extractor.p.rapidapi.com',
+            },
+            body: formData
+          };
+
+          try {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log('response: ', data);
+            parsedResumeData = data.data;
+            console.log('parsedResumeData: ', parsedResumeData);
+
+            // Save to local storage
+            localStorage.setItem(`resumeData_${userId}`, JSON.stringify(parsedResumeData));
+            console.log('Saved parsed resume data to local storage');
+
+          } catch (error) {
+            console.error('Error:', error);
+            toast.error('Error parsing resume');
+            setIsLoading(false)
+            return;
+          }
+        }
+
+        // Save parsed resume data if available
+        if (parsedResumeData) {
+          const { error: resumeError } = await supabase
+            .from('Resumes')
+            .upsert({
+              user_id: userId,
+              content: parsedResumeData,
+              title: parsedResumeData.personal_info.full_name,
+            });
+
+          if (resumeError) {
+            throw new Error('Error saving user\'s resume');
+          }
+        }
+      } else if (file) {
+        toast.error('Please upload a PDF file only');
+        setIsLoading(false)
+        return;
+      }
+
+      const jobPreferences = {
+        user_id: userId,
+        preferred_positions: jobTitles,
+        preferred_job_types: Object.entries(jobTypes)
+          .filter(([_, value]) => value)
+          .map(([key, _]) => key),
+        preferred_locations: Object.entries(locationPreferences)
+          .filter(([_, value]) => value)
+          .map(([key, _]) => key),
+      };
+
+      // Upsert the job preferences
+      const { error: preferencesError } = await supabase
         .from('UserPreferences')
-        .upsert(jobPreferences, { onConflict: 'user_id' })
+        .upsert(jobPreferences);
 
-      if (error) throw error
+      if (preferencesError) {
+        throw new Error('Error saving job preferences');
+      }
 
-      router.push('/jobs')
+      toast.success('Job preferences and resume data saved successfully');
+      router.push('/jobs');
     } catch (error) {
-      console.error('Error saving job preferences:', error)
-      toast.error('Error saving job preferences')
+      console.error('Error:', error);
+      toast.error('Error saving data');
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -187,7 +261,7 @@ export default function JobSearchForm() {
                   type="file"
                   className="hidden"
                   onChange={handleFileChange}
-                  accept=".pdf,.doc,.docx"
+                  accept=".pdf"
                 />
                 <Button
                   type="button"
@@ -209,22 +283,27 @@ export default function JobSearchForm() {
                   </Button>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-1">Max file size: 5MB. Supported formats: PDF, DOC, DOCX</p>
+              <p className="text-xs text-gray-500 mt-1">Max file size: 5MB. Supported format: PDF</p>
             </div>
 
-            <div className="flex justify-between items-center pt-4">
-              <div className="flex space-x-2">
-                <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                <div className="w-2 h-2 rounded-full bg-purple-600"></div>
-                <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-              </div>
-              <Link href="/jobs">
-                <Button type="submit" className="bg-purple-600 text-white hover:bg-purple-700">
-                  Next
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </Button>
-              </Link>
+            <div className="flex justify-end items-center pt-4">
+              <Button 
+                type="submit" 
+                className="bg-purple-600 text-white hover:bg-purple-700"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    Next
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </>
+                )}
+              </Button>
             </div>
           </form>
         </div>

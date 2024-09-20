@@ -4,23 +4,23 @@ export async function fetchJobs(filters: any) {
   const options = {
     method: 'GET',
     headers: {
-      'x-rapidapi-key': process.env.RAPIDAPI_KEY || '',
-      'x-rapidapi-host': process.env.RAPIDAPI_HOST || '',
+      'x-rapidapi-key': '1816e3d3ccmsha37fa1fcd4e7794p111913jsne6835d4ecbfc',
+      'x-rapidapi-host': 'jobs-api14.p.rapidapi.com',
     }
   };
 
   const queryParams = new URLSearchParams({
     query: filters.query || 'Web Developer',
     location: filters.location || 'India',
-    distance: filters.distance || '1.0',
+    distance: '1.0',
     language: 'en_GB',
-    remoteOnly: filters.remoteOnly || 'true',
+    remoteOnly: filters.remoteOnly || 'false',
     datePosted: filters.datePosted || 'month',
     employmentTypes: filters.employmentTypes || 'fulltime;parttime;intern;contractor',
     index: '0'
   });
 
-  const url = `${process.env.RAPIDAPI_URL}?${queryParams.toString()}`;
+  const url = `https://jobs-api14.p.rapidapi.com/list?${queryParams.toString()}`;
 
   try {
     const response = await fetch(url, options);
