@@ -1,10 +1,18 @@
+'use server'
+
 import { NextResponse } from 'next/server';
+
+import { OpenAI } from "openai"
+
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
 
 export async function fetchJobs(filters: any) {
   const options = {
     method: 'GET',
     headers: {
-      'x-rapidapi-key': '1816e3d3ccmsha37fa1fcd4e7794p111913jsne6835d4ecbfc',
+      'x-rapidapi-key': '5ca75ac692msh2b5941c0c623998p1cc3e8jsn0da75e09b686',
       'x-rapidapi-host': 'jobs-api14.p.rapidapi.com',
     }
   };
@@ -25,9 +33,55 @@ export async function fetchJobs(filters: any) {
   try {
     const response = await fetch(url, options);
     const data = await response.json();
-    return NextResponse.json(data);
+    return { jobs: data.jobs.map((job: any) => ({
+      id: job.id,
+      company: job.company,
+      title: job.title,
+      description: job.description,
+      location: job.location,
+      employmentType: job.employmentType,
+      datePosted: job.datePosted,
+      salaryRange: job.salaryRange,
+    }))};
   } catch (error) {
     console.error('Error fetching jobs:', error);
-    return NextResponse.json({ error: 'Failed to fetch jobs' }, { status: 500 });
+    return { error: 'Failed to fetch jobs' };
   }
+}
+
+
+export async function customResume(jsonData: string, jobDescription: string) {
+  const prompt = `user's resume's json:
+                  ${JSON.stringify(jsonData)}
+                  and Job Description: ${jobDescription}
+                  I want to same jsonData as a output but modified to be more relevant to the job description
+                  `
+
+  const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+        messages: [
+          {
+            "role": "system",
+            "content": [
+              {
+                "type": "text",
+                "text": prompt
+              }
+            ]
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 2048,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+        response_format: {
+          "type": "text"
+        },
+      });
+
+      console.log(response)
+      const content = response.choices[0].message.content || ''
+      console.log('response from openAI: ',content)
+      return JSON.parse(content.replaceAll('```json\n', '').replaceAll('\n```', ''))
 }

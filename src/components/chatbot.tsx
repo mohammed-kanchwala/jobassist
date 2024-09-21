@@ -6,9 +6,8 @@ import { Input } from "@/components/ui/input"
 
 export default function ChatBot () {
   return (
-    <>
-    {/* Right Sidebar - AI Chatbot */}
-    <aside className="w-80 bg-white border-l border-gray-200 p-6">
+    <aside className="w-80 bg-white border-l border-gray-200 flex flex-col h-screen">
+      <div className="p-6 flex-grow overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
             <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center mr-2">
@@ -47,13 +46,18 @@ export default function ChatBot () {
           </ul>
         </div>
 
+        {/* Chat messages would go here */}
         <div className="flex-grow">
-          <Input placeholder="Ask me anything..." className="mb-2" />
-          <Button className="w-full bg-purple-600 text-white hover:bg-purple-700">
-            Send
-          </Button>
+          {/* Add your chat messages here */}
         </div>
-      </aside>
-    </>
+      </div>
+
+      <div className="p-6 border-t border-gray-200">
+        <Input placeholder="Ask me anything..." className="mb-2" />
+        <Button className="w-full bg-purple-600 text-white hover:bg-purple-700">
+          Send
+        </Button>
+      </div>
+    </aside>
   )
 }

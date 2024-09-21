@@ -5,10 +5,10 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
-import jsPDF from "jspdf"
-import html2canvas from 'html2canvas'
 import { Plus, Minus, GripVertical } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
+import { matchFields } from '@/app/resume/action'
+import { pdf, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 
 interface ResumeData {
   personal_info: {
@@ -55,9 +55,6 @@ export default function ResumeBuilder() {
   const resumeRef = useRef<HTMLDivElement>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const supabase = createClient()
-
-  const initialMarkdownContent = ``;
-
 
   useEffect(() => {
     const checkUser = async () => {
@@ -177,39 +174,222 @@ export default function ResumeBuilder() {
     })
   }
 
-  const convertMarkdownToPDF = async (markdownContent: string) => {
-    const url = 'https://md-to-pdf.fly.dev';
-    const options = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-            markdown: markdownContent,
-            css: 'body{font-family:Arial,sans-serif;font-size:10pt;line-height:1.4;color:#333;margin:0;padding:20px;}h2{font-size:18pt;color:#2c3e50;margin-top:20px;margin-bottom:10px;border-bottom:1pxsolid#2c3e50;padding-bottom:5px;}h3{font-size:14pt;color:#34495e;margin-top:15px;margin-bottom:5px;}h4{font-size:12pt;color:#2c3e50;margin-top:10px;margin-bottom:5px;}p{margin:5px0;}ul{margin:5px0;padding-left:20px;}li{margin-bottom:3px;}a{color:#3498db;text-decoration:none;}a:hover{text-decoration:underline;}hr{border:none;border-top:1pxsolid#bdc3c7;margin:15px0;}.contact-info{display:flex;justify-content:space-between;flex-wrap:wrap;}.contact-infop{margin:0;flex-basis:50%;}.skills-list{column-count:2;column-gap:20px;}.experience-item{margin-bottom:15px;}.experience-header{display:flex;justify-content:space-between;align-items:baseline;}.experience-title{font-weight:bold;}.experience-date{font-style:italic;color:#7f8c8d;}.language-proficiency{display:flex;justify-content:space-between;}.language{font-weight:bold;}.proficiency{color:#7f8c8d;}',
-        }).toString(),
-    };
-
-    try {
-        const response = await fetch('https://md-to-pdf.fly.dev', options);
-        if (!response.ok) throw new Error('Failed to convert markdown to PDF');
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'resume.pdf';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-    } catch (error) {
-        console.error('Error converting markdown to PDF:', error);
-    }
-  }
-
   const downloadResume = async () => {
-
-    convertMarkdownToPDF(initialMarkdownContent)
-
+    const jsonInput = `{
+      "data": {
+      "personal_info": {
+      "first_name": "Mohammed",
+      "last_name": "Kanchwala",
+      "full_name": "Mohammed Kanchwala",
+      "date_of_birth": "",
+      "age": 0,
+      "nationality": "British",
+      "place_of_birth": ""
+      },
+      "driving_license": [],
+      "contact_info": {
+      "email": "mohammed.kanchwala@outlook.com",
+      "website": "",
+      "linkedin": "https://www.linkedin.com/in/mohammed-kanchwala-94256399/",
+      "phone": "+44 744 321 1056",
+      "formatted_address": "Glasgow, United Kingdom",
+      "address_breakdown": {
+      "formatted_address": "Glasgow, United Kingdom",
+      "city": "Glasgow",
+      "state_code": "",
+      "state_name": "",
+      "country_code": "GBR",
+      "country_name": "United Kingdom",
+      "postal_code": ""
+      }
+      },
+      "summary": "Senior Software Engineer with 9+ years of experience. Specializing in developing and maintaining online banking platforms. Proven ability to design, implement, and test complex software solutions, with practical experience in low latency systems and cryptocurrency trading platforms.",
+      "skills": [
+      "Core Java",
+      "JavaScript",
+      "SQL",
+      "Spring Boot",
+      "Angular",
+      "AWS",
+      "Git",
+      "Jira",
+      "Confluence",
+      "Database Programming",
+      "Docker",
+      "Hibernate",
+      "Agile",
+      "Low latency systems",
+      "Cryptocurrency",
+      "Digital Asset Trading"
+      ],
+      "other_social_media_links": [
+      {
+      "name": "GitHub",
+      "url": "https://github.com/mohammed-kanchwala"
+      }
+      ],
+      "experience": [
+      {
+      "title": "Software Engineer III",
+      "subtitle": "",
+      "description": "Worked with a team of engineers to improve the performance and scalability of the online banking platform, ensuring that it could handle a large volume of traffic and transactions. Collaborated with product managers and business analysts to gather requirements and design new features for the online banking platform, as well as to ensure that existing features met the needs of users. Kept up with the latest trends in online banking technology and security, and implemented new technologies and security measures to improve the user experience and protect the bank's customers. Worked with a team to deliver Database Migration without impacting Business and Client along with solving Technical challenges.",
+      "company": "JP Morgan Chase & Co",
+      "formatted_address": "Glasgow, UK",
+      "work_type": "Office",
+      "period": {
+      "start_date": "2022-11-01",
+      "end_date": "Present",
+      "is_current": true,
+      "length_days": 0
+      },
+      "military": {
+      "service": "",
+      "rank": "",
+      "branch": ""
+      },
+      "meta": {
+      "experience_level": "Senior",
+      "url": "",
+      "keywords": [],
+      "industry": []
+      }
+      },
+      {
+      "title": "Software Developer",
+      "subtitle": "",
+      "description": "Developed major features for Banking Application mainly Apple Pay, Google Pay, Domestic and International Transfers and Payments. Managed full application development and production support including feature and story implementation. Responsible for Developing new solutions that increased scalability by 65%. Received Best Agile Squad award in the company. Gained practical experience working with low latency systems.",
+      "company": "DP World",
+      "formatted_address": "Dubai, UAE",
+      "work_type": "Office",
+      "period": {
+      "start_date": "2020-04-01",
+      "end_date": "2022-11-01",
+      "is_current": false,
+      "length_days": 208
+      },
+      "military": {
+      "service": "",
+      "rank": "",
+      "branch": ""
+      },
+      "meta": {
+      "experience_level": "Mid",
+      "url": "",
+      "keywords": [],
+      "industry": []
+      }
+      },
+      {
+      "title": "Software Developer",
+      "subtitle": "",
+      "description": "Worked as a full-stack developer for the application to deliver the best solutions. Responsible for session management and security for the application. Developed and managed major feature changes and release process. Involved in requirement gathering and preparing technical document for the project. Engaged with cryptocurrency projects and digital asset trading systems.",
+      "company": "Nagarro Middle East",
+      "formatted_address": "Dubai, UAE",
+      "work_type": "Office",
+      "period": {
+      "start_date": "2017-02-01",
+      "end_date": "2020-02-01",
+      "is_current": false,
+      "length_days": 1095
+      },
+      "military": {
+      "service": "",
+      "rank": "",
+      "branch": ""
+      },
+      "meta": {
+      "experience_level": "Mid",
+      "url": "",
+      "keywords": [],
+      "industry": []
+      }
+      },
+      {
+      "title": "Software Developer",
+      "subtitle": "",
+      "description": "",
+      "company": "Gatesoft Solutions",
+      "formatted_address": "Ahmedabad, India",
+      "work_type": "Office",
+      "period": {
+      "start_date": "2014-09-01",
+      "end_date": "2017-02-01",
+      "is_current": false,
+      "length_days": 873
+      },
+      "military": {
+      "service": "",
+      "rank": "",
+      "branch": ""
+      },
+      "meta": {
+      "experience_level": "Junior",
+      "url": "",
+      "keywords": [],
+      "industry": []
+      }
+      }
+      ],
+      "education": [
+      {
+      "title": "Bachelor of Engineering (I.T.)",
+      "subtitle": "",
+      "description": "",
+      "institution": "University of Pune",
+      "degree": "Bachelor's Degree",
+      "formatted_address": "",
+      "period": {
+      "start_date": "2007-01-01",
+      "end_date": "2011-12-31",
+      "is_current": false,
+      "length_days": 1461
+      },
+      "meta": {
+      "partial": false,
+      "url": "",
+      "keywords": []
+      }
+      }
+      ],
+      "certifications": [],
+      "languages": [
+      {
+      "name": "English",
+      "proficiency": ""
+      },
+      {
+      "name": "Hindi",
+      "proficiency": ""
+      },
+      {
+      "name": "Gujarati",
+      "proficiency": ""
+      },
+      {
+      "name": "Arabic",
+      "proficiency": ""
+      }
+      ]
+      }
+      }`;
+    // const MyDocument = await generateResumePDF(jsonInput);
+    
+    // // Generate PDF blob
+    // const blob = await pdf(<MyDocument />).toBlob();
+    
+    // // Create a URL for the blob
+    // const url = URL.createObjectURL(blob);
+    
+    // // Create a temporary anchor element and trigger download
+    // const link = document.createElement('a');
+    // link.href = url;
+    // link.download = 'resume.pdf';
+    // document.body.appendChild(link);
+    // link.click();
+    
+    // // Clean up
+    // document.body.removeChild(link);
+    // URL.revokeObjectURL(url);
   }
 
   return (
@@ -224,7 +404,7 @@ export default function ResumeBuilder() {
         <div ref={resumeRef} className="bg-white shadow-xl rounded-lg overflow-hidden p-8">
           <div className="mb-6">
             <Input
-              value={resumeData?.personal_info?.full_name || ''} // Use optional chaining and provide a default value
+              value={resumeData?.personal_info?.full_name || ''}
               onChange={(e) => handleInputChange('personal_info', null, 'full_name', e.target.value)}
               className="text-3xl font-bold mb-2"
             />
