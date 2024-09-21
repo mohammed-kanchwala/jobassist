@@ -12,7 +12,7 @@ export async function fetchJobs(filters: any) {
   const options = {
     method: 'GET',
     headers: {
-      'x-rapidapi-key': '5ca75ac692msh2b5941c0c623998p1cc3e8jsn0da75e09b686',
+      'x-rapidapi-key': 'ef3fe15e26mshaacb9fea0732e53p1c9327jsn66362460ee27',
       'x-rapidapi-host': 'jobs-api14.p.rapidapi.com',
     }
   };
@@ -33,19 +33,30 @@ export async function fetchJobs(filters: any) {
   try {
     const response = await fetch(url, options);
     const data = await response.json();
-    return { jobs: data.jobs.map((job: any) => ({
-      id: job.id,
-      company: job.company,
-      title: job.title,
-      description: job.description,
-      location: job.location,
-      employmentType: job.employmentType,
-      datePosted: job.datePosted,
-      salaryRange: job.salaryRange,
-    }))};
+    
+    // Check if data.jobs exists and is an array
+    if (Array.isArray(data.jobs)) {
+      return {
+        jobs: data.jobs.map((job: any) => ({
+          id: job.id,
+          company: job.company,
+          image: job.image,
+          title: job.title,
+          description: job.description,
+          location: job.location,
+          employmentType: job.employmentType,
+          datePosted: job.datePosted,
+          salaryRange: job.salaryRange,
+          url: job.jobProviders?.[0]?.url
+        }))
+      };
+    } else {
+      console.error('Unexpected API response structure:', data);
+      return { error: 'Unexpected API response structure', data };
+    }
   } catch (error) {
     console.error('Error fetching jobs:', error);
-    return { error: 'Failed to fetch jobs' };
+    return { error: 'Failed to fetch jobs', details: error };
   }
 }
 

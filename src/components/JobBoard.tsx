@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 
 const jobPostings = [
-    { company: "Atlassian", logo: "/placeholder.svg?height=40&width=40", title: "Director of Sales Analyst Pre-S...", time: "7 hours ago" },
-    { company: "Boston Scientific", logo: "/placeholder.svg?height=40&width=40", title: "User Experience Design Intern", time: "5 hours ago" },
-    { company: "Ridgeline", logo: "/placeholder.svg?height=40&width=40", title: "Services Sales Lead", time: "16 hours ago" },
+    { company: "Wipro", logo: "/wipro.png?height=40&width=40", title: "Director of Sales Analyst Pre-S...", time: "7 hours ago" },
+    { company: "Accenture", logo: "/accenture.png?height=40&width=40", title: "User Experience Design Intern", time: "5 hours ago" },
+    { company: "Microsoft", logo: "/microsoft.png?height=40&width=40", title: " Sales Lead", time: "16 hours ago" },
     { company: "Google", logo: "/google.png?height=40&width=40", title: "Staff Intern", time: "7 hours ago" },
   ]
 

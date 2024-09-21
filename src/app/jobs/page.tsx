@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, MapPin, Clock, Building2, Calendar, CheckCircle, Filter, FileText } from 'lucide-react'
+import { MoreHorizontal, MapPin, Clock, Building2, Calendar, CheckCircle, Filter, FileText, Heart } from 'lucide-react'
 import SidePanel from '@/components/sidepanel'
 import ChatBot from '@/components/chatbot'
 import { createClient } from '@/utils/supabase/client'
@@ -14,7 +14,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 import  Select  from 'react-select'
 import { pdf, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { customResume } from './action'
-import { serialize } from 'superjson'
 
 // Styles for PDF
 const styles = StyleSheet.create({
@@ -98,6 +97,7 @@ export interface Job {
   employmentType: string;
   datePosted: string;
   salaryRange: string;
+  url: string;
 }
 
 const CircularProgressBar = ({ percentage }: { percentage: number }) => {
@@ -158,6 +158,7 @@ export default function JobSearchPage() {
   const supabase = createClient()
   const [generatingResume, setGeneratingResume] = useState<{ [key: string]: boolean }>({});
   const [generationProgress, setGenerationProgress] = useState<{ [key: string]: number }>({});
+  const filterPanelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     
@@ -219,31 +220,34 @@ export default function JobSearchPage() {
         const response = await fetchJobs(filters);
         if (Array.isArray(response.jobs)) {
           setJobListings(response.jobs);
-          localStorage.setItem('jobListings', JSON.stringify(response.jobs));
+          if (response.jobs.length > 0) {
+            localStorage.setItem('jobListings', JSON.stringify(response.jobs));
   
-          // Prepare the jobs data for insertion
-          const jobsToInsert = response.jobs.map((job: any) => ({
-            company: job.company,
-            title: job.title,
-            description: job.description,
-            location: job.location,
-            job_type: job.employmentType,
-            salary_range: job.salaryRange,
-            posted_date: job.datePosted,
-          }));
-  
-          // Insert all jobs at once
-          const { data: jobData, error } = await supabase
-            .from('Jobs')
-            .upsert(jobsToInsert, { onConflict: 'job_id' })
-            .select();
-  
-          if (error) {
-            console.error('Error inserting jobs:', error);
-          } else {
-            console.log('Jobs inserted:', jobData);
-            if (jobData && jobData.length === 0) {
-              console.warn('No new jobs were inserted. They might already exist in the database.');
+            // Prepare the jobs data for insertion
+            const jobsToInsert = response.jobs.map((job: any) => ({
+              company: job.company,
+              title: job.title,
+              description: job.description,
+              location: job.location,
+              job_type: job.employmentType,
+              salary_range: job.salaryRange,
+              posted_date: job.datePosted,
+              url: job.url
+            }));
+    
+            // Insert all jobs at once
+            const { data: jobData, error } = await supabase
+              .from('Jobs')
+              .upsert(jobsToInsert, { onConflict: 'job_id' })
+              .select();
+    
+            if (error) {
+              console.error('Error inserting jobs:', error);
+            } else {
+              console.log('Jobs inserted:', jobData);
+              if (jobData && jobData.length === 0) {
+                console.warn('No new jobs were inserted. They might already exist in the database.');
+              }
             }
           }
         }
@@ -317,16 +321,29 @@ export default function JobSearchPage() {
     }
   }
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filterPanelRef.current && !filterPanelRef.current.contains(event.target as Node)) {
+        setShowFilters(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
   if (!user) return null 
   return (
     <div className="flex h-screen bg-gray-100">
       <SidePanel />
       <div className="flex-grow flex overflow-hidden">
-        <main className="flex-grow p-6 overflow-y-auto">
+        <main className="flex-grow p-6 overflow-y-auto relative">
           <header className="mb-6">
             <h1 className="text-2xl font-bold text-gray-800 mb-4">JOBS</h1>
             <div className="flex space-x-4">
-              {["Recommended", "Liked", "Applied", "External"].map((tab) => (
+              {["Recommended", "Liked", "Applied"].map((tab) => (
                 <Button
                   key={tab}
                   variant={activeTab === tab ? "default" : "outline"}
@@ -366,9 +383,14 @@ export default function JobSearchPage() {
                     <div key={job.id} className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex items-center">
-                          <img src={job.image || "/placeholder.svg?height=40&width=40"} alt={job.company} className="w-12 h-12 rounded-full mr-4" />
+                          <img src={job.image} alt={job.company} className="w-12 h-12 rounded-full mr-4" />
                           <div>
-                            <h2 className="text-xl font-semibold text-gray-800">{job.title}</h2>
+                            <h2 
+                              className="text-xl font-semibold text-gray-800 hover:text-purple-600 cursor-pointer underline"
+                              onClick={() => window.open(job.url, '_blank')}
+                            >
+                              {job.title}
+                            </h2>
                             <p className="text-gray-600">{job.company}</p>
                           </div>
                         </div>
@@ -390,9 +412,13 @@ export default function JobSearchPage() {
                           {job.datePosted}
                         </div>
                       </div>
-                      <div className="flex justify-between items-center">
-                        {job.salaryRange && <p className="text-sm text-gray-500">{job.salaryRange}</p>}
+                      
+                      <div className="flex justify-end items-center">
+                        {job.salaryRange && <p className="text-sm text-gray-500 mr-auto">{job.salaryRange}</p>}
                         <div className="flex space-x-2">
+                          <Button variant="outline" className="text-gray-600">
+                            <Heart className="w-4 h-4 mr-1" />
+                          </Button>
                           <Button variant="outline" className="text-gray-600">
                             Ask JobAssist
                           </Button>
@@ -411,7 +437,10 @@ export default function JobSearchPage() {
                               <FileText className="w-6 h-6" />  Download Custom Resume
                             </Button>
                           )}
-                          <Button className="bg-purple-600 hover:bg-purple-700">
+                          <Button 
+                            className="bg-purple-600 hover:bg-purple-700"
+                            onClick={() => window.open(job.url, '_blank')}
+                          >
                             Apply Now
                           </Button>
                         </div>
@@ -422,140 +451,143 @@ export default function JobSearchPage() {
               </div>
             )}
           </div>
-        </main>
-        
-        <div className="w-80 flex-shrink-0 overflow-y-auto border-l border-gray-200">
+
           {showFilters && (
-            <div className="bg-white p-6 shadow-lg">
-              <h2 className="text-xl font-semibold mb-6">Filters</h2>
+            <div 
+              ref={filterPanelRef}
+              className="absolute top-0 right-0 bottom-0 w-80 bg-white shadow-lg overflow-y-auto z-10"
+            >
+              <div className="p-6">
+                <h2 className="text-xl font-semibold mb-6">Filters</h2>
               
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Job Title</label>
-                  <Select
-                    isMulti
-                    options={[...filters.jobTitles.map(title => ({ value: title, label: title })), { value: 'add', label: '+ Add' }]}
-                    onChange={(selected: any) => {
-                      if (selected.some((option: any) => option.value === 'add')) {
-                        const newTitle = prompt('Enter new job title:')
-                        if (newTitle) {
-                          handleFilterChange('jobTitles', [...filters.jobTitles, newTitle])
-                        }
-                      } else {
-                        handleFilterChange('jobTitles', selected.map((option: any) => option.value))
-                      }
-                    }}
-                    placeholder="Select or add job titles"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Job Type</label>
-                  <div className="space-y-2">
-                    {['Full-time', 'Part-time', 'Contract', 'Internship'].map((type) => (
-                      <div key={type} className="flex items-center">
-                        <Checkbox
-                          checked={filters.jobType.includes(type)}
-                          onCheckedChange={(checked: any) => {
-                            if (checked) {
-                              handleFilterChange('jobType', [...filters.jobType, type])
-                            } else {
-                              handleFilterChange('jobType', filters.jobType.filter(t => t !== type))
-                            }
-                          }}
-                        />
-                        <label className="ml-2 text-sm">{type}</label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Work Model</label>
-                  <div className="space-y-2">
-                    {['Onsite', 'Remote', 'Hybrid'].map((model) => (
-                      <div key={model} className="flex items-center">
-                        <Checkbox
-                          checked={filters.workModel.includes(model)}
-                          onCheckedChange={(checked: boolean) => {
-                            if (checked) {
-                              handleFilterChange('workModel', [...filters.workModel, model])
-                            } else {
-                              handleFilterChange('workModel', filters.workModel.filter(m => m !== model))
-                            }
-                          }}
-                        />
-                        <label className="ml-2 text-sm">{model}</label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/*<div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                  <Input
-                    type="text"
-                    value={filters.location}
-                    onChange={(e) => handleFilterChange('location', e.target.value)}
-                    placeholder="Select a city"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Experience Level</label>
-                  <div className="space-y-2">
-                    {['Intern Level', 'Entry Level', 'Mid Level', 'Senior Level', 'Director', 'Executive'].map((level) => (
-                      <Checkbox
-                        key={level}
-                        checked={filters.experienceLevel.includes(level)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            handleFilterChange('experienceLevel', [...filters.experienceLevel, level])
-                          } else {
-                            handleFilterChange('experienceLevel', filters.experienceLevel.filter(l => l !== level))
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Job Title</label>
+                    <Select
+                      isMulti
+                      options={[...filters.jobTitles.map(title => ({ value: title, label: title })), { value: 'add', label: '+ Add' }]}
+                      onChange={(selected: any) => {
+                        if (selected.some((option: any) => option.value === 'add')) {
+                          const newTitle = prompt('Enter new job title:')
+                          if (newTitle) {
+                            handleFilterChange('jobTitles', [...filters.jobTitles, newTitle])
                           }
-                        }}
-                        label={level}
-                      />
-                    ))}
+                        } else {
+                          handleFilterChange('jobTitles', selected.map((option: any) => option.value))
+                        }
+                      }}
+                      placeholder="Select or add job titles"
+                    />
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Job Type</label>
+                    <div className="space-y-2">
+                      {['Full-time', 'Part-time', 'Contract', 'Internship'].map((type) => (
+                        <div key={type} className="flex items-center">
+                          <Checkbox
+                            checked={filters.jobType.includes(type)}
+                            onCheckedChange={(checked: any) => {
+                              if (checked) {
+                                handleFilterChange('jobType', [...filters.jobType, type])
+                              } else {
+                                handleFilterChange('jobType', filters.jobType.filter(t => t !== type))
+                              }
+                            }}
+                          />
+                          <label className="ml-2 text-sm">{type}</label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Work Model</label>
+                    <div className="space-y-2">
+                      {['Onsite', 'Remote', 'Hybrid'].map((model) => (
+                        <div key={model} className="flex items-center">
+                          <Checkbox
+                            checked={filters.workModel.includes(model)}
+                            onCheckedChange={(checked: boolean) => {
+                              if (checked) {
+                                handleFilterChange('workModel', [...filters.workModel, model])
+                              } else {
+                                handleFilterChange('workModel', filters.workModel.filter(m => m !== model))
+                              }
+                            }}
+                          />
+                          <label className="ml-2 text-sm">{model}</label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/*<div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                    <Input
+                      type="text"
+                      value={filters.location}
+                      onChange={(e) => handleFilterChange('location', e.target.value)}
+                      placeholder="Select a city"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Experience Level</label>
+                    <div className="space-y-2">
+                      {['Intern Level', 'Entry Level', 'Mid Level', 'Senior Level', 'Director', 'Executive'].map((level) => (
+                        <Checkbox
+                          key={level}
+                          checked={filters.experienceLevel.includes(level)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              handleFilterChange('experienceLevel', [...filters.experienceLevel, level])
+                            } else {
+                              handleFilterChange('experienceLevel', filters.experienceLevel.filter(l => l !== level))
+                            }
+                          }}
+                          label={level}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                   <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Required Experience</label>
+                    <Slider
+                      min={0}
+                      max={11}
+                      step={1}
+                      value={filters.requiredExperience}
+                      onValueChange={(value) => handleFilterChange('requiredExperience', value)}
+                    />
+                    <div className="flex justify-between text-sm text-gray-600 mt-2">
+                      <span>{filters.requiredExperience[0]} years</span>
+                      <span>{filters.requiredExperience[1]} years</span>
+                    </div>
+                  </div> 
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date Posted</label>
+                    <Select
+                      options={[
+                        { value: 'past24hours', label: 'Past 24 hours' },
+                        { value: 'past3days', label: 'Past 3 days' },
+                        { value: 'pastWeek', label: 'Past Week' },
+                        { value: 'pastMonth', label: 'Past Month' },
+                      ]}
+                      value={filters.datePosted}
+                      onChange={(value) => handleFilterChange('datePosted', value)}
+                      placeholder="Select date range"
+                    />
+                  </div>*/}
                 </div>
 
-                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Required Experience</label>
-                  <Slider
-                    min={0}
-                    max={11}
-                    step={1}
-                    value={filters.requiredExperience}
-                    onValueChange={(value) => handleFilterChange('requiredExperience', value)}
-                  />
-                  <div className="flex justify-between text-sm text-gray-600 mt-2">
-                    <span>{filters.requiredExperience[0]} years</span>
-                    <span>{filters.requiredExperience[1]} years</span>
-                  </div>
-                </div> 
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Date Posted</label>
-                  <Select
-                    options={[
-                      { value: 'past24hours', label: 'Past 24 hours' },
-                      { value: 'past3days', label: 'Past 3 days' },
-                      { value: 'pastWeek', label: 'Past Week' },
-                      { value: 'pastMonth', label: 'Past Month' },
-                    ]}
-                    value={filters.datePosted}
-                    onChange={(value) => handleFilterChange('datePosted', value)}
-                    placeholder="Select date range"
-                  />
-                </div>*/}
+                <Button onClick={handleFetchJobs} className="w-full mt-6">Apply Filters</Button>
               </div>
-
-              <Button onClick={handleFetchJobs} className="w-full mt-6">Apply Filters</Button>
             </div>
           )}
-        </div>
+        </main>
         
         <div className="w-80 flex-shrink-0 border-l border-gray-200">
           <ChatBot />

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -6,13 +6,25 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Menu, X, Mail, Lock } from "lucide-react"
 import Link from 'next/link'
 import { login, signup } from '../app/login/action'
+import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
+
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
   const router = useRouter()
+  const [isScrolled, setIsScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const handleAuthSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -27,13 +39,14 @@ export default function Header() {
       signup(email, password);
     }
 
+    
     console.log(`${authMode} submitted`)
     setIsModalOpen(false)
   }
 
   return (
     <>
-      <header className="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
+      <header className={`fixed top-0 left-0 right-0 z-50 ${isScrolled ? 'bg-white shadow-md' : 'bg-transparent'}`}>
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="text-2xl font-bold text-purple-600">JobAssist</div>
           <nav className="hidden md:flex space-x-6">
