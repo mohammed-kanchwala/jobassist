@@ -1,7 +1,5 @@
 'use server'
 
-import { NextResponse } from 'next/server';
-
 import { OpenAI } from "openai"
 
 const openai = new OpenAI({
@@ -12,8 +10,8 @@ export async function fetchJobs(filters: any) {
   const options = {
     method: 'GET',
     headers: {
-      'x-rapidapi-key': 'ef3fe15e26mshaacb9fea0732e53p1c9327jsn66362460ee27',
-      'x-rapidapi-host': 'jobs-api14.p.rapidapi.com',
+      'x-rapidapi-key': process.env.RAPIDAPI_KEY || '',
+      'x-rapidapi-host': process.env.RAPIDAPI_HOST || '',
     }
   };
 
@@ -28,7 +26,7 @@ export async function fetchJobs(filters: any) {
     index: '0'
   });
 
-  const url = `https://jobs-api14.p.rapidapi.com/list?${queryParams.toString()}`;
+  const url = process.env.RAPIDAPI_URL + `?${queryParams.toString()}`;
 
   try {
     const response = await fetch(url, options);

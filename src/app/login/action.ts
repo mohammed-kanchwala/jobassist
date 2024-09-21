@@ -30,7 +30,7 @@ export async function signup(email: string, password: string) {
     email: email,
     password: password,
     options: {
-      emailRedirectTo: 'http://localhost:3001/profile',
+      emailRedirectTo: 'http://localhost:3001/job-preferences',
     },
     
   })

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { MoreHorizontal, MapPin, Clock, Building2, Calendar, CheckCircle, Filter, FileText, Heart } from 'lucide-react'
@@ -14,15 +14,73 @@ import { Checkbox } from "@/components/ui/checkbox"
 import  Select  from 'react-select'
 import { pdf, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { customResume } from './action'
+import { flushSync } from 'react-dom';
 
 // Styles for PDF
 const styles = StyleSheet.create({
-  page: { padding: 30 },
-  section: { marginBottom: 10 },
-  header: { fontSize: 18, marginBottom: 20 },
-  subHeader: { fontSize: 14, marginBottom: 10 },
-  text: { fontSize: 12, marginBottom: 5 },
-  subsection: { marginBottom: 5 },
+  page: { padding: 30, fontFamily: 'Helvetica' },
+  header: { 
+    fontSize: 24, 
+    marginBottom: 10, 
+    fontWeight: 'bold', 
+    color: 'black', 
+    textAlign: 'center' 
+  },
+  contactInfo: {
+    fontSize: 10,
+    color: 'black',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  section: { 
+    marginBottom: 10,
+    borderBottom: '1 solid #000',
+    paddingBottom: 5,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: 'black',
+    marginBottom: 5,
+    textTransform: 'uppercase',
+  },
+  subsection: { 
+    marginBottom: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  leftColumn: {
+    width: '70%',
+  },
+  rightColumn: {
+    width: '30%',
+    textAlign: 'right',
+  },
+  institutionName: {
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  degreeInfo: {
+    fontSize: 11,
+  },
+  jobTitle: {
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  companyName: {
+    fontSize: 11,
+    fontStyle: 'italic',
+  },
+  bulletPoint: {
+    fontSize: 10,
+    marginBottom: 2,
+    marginLeft: 10,
+  },
+  text: { 
+    fontSize: 10, 
+    marginBottom: 3, 
+    color: 'black' 
+  },
 });
 
 
@@ -35,43 +93,57 @@ export async function generateResumePDF(jsonInput: any) {
       <Page size="A4" style={styles.page}>
         <View style={styles.section}>
           <Text style={styles.header}>{matchedData.personal_info.full_name}</Text>
-          <Text style={styles.text}>{matchedData.contact_info.email}</Text>
-          <Text style={styles.text}>{matchedData.contact_info.phone}</Text>
-          <Text style={styles.text}>{matchedData.contact_info.formatted_address}</Text>
+          <Text style={styles.contactInfo}>
+            {matchedData.contact_info.email} | {matchedData.contact_info.phone} | {matchedData.contact_info.formatted_address} | {matchedData.contact_info.linkedin}
+          </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.subHeader}>Summary</Text>
+          <Text style={styles.sectionTitle}>Summary</Text>
           <Text style={styles.text}>{matchedData.summary}</Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.subHeader}>Education</Text>
+          <Text style={styles.sectionTitle}>Education</Text>
           {matchedData.education.map((edu: any, index: number) => (
-            <Text key={index} style={styles.text}>
-              {`${edu.degree} - ${edu.institution} (${edu.period.start_date} - ${edu.period.end_date})`}
-            </Text>
-          ))}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.subHeader}>Work Experience</Text>
-          {matchedData.experience.map((exp: any, index: number) => (
             <View key={index} style={styles.subsection}>
-              <Text style={styles.text}>{`${exp.title} at ${exp.company}`}</Text>
-              <Text style={styles.text}>{`${exp.formatted_address} (${exp.period.start_date} - ${exp.period.end_date})`}</Text>
-              <Text style={styles.text}>{exp.description}</Text>
+              <View style={styles.leftColumn}>
+                <Text style={styles.institutionName}>{edu.institution}</Text>
+                <Text style={styles.degreeInfo}>{edu.degree}</Text>
+              </View>
+              <View style={styles.rightColumn}>
+                <Text style={styles.text}>{`${edu.period.start_date} - ${edu.period.end_date}`}</Text>
+              </View>
             </View>
           ))}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.subHeader}>Skills</Text>
+          <Text style={styles.sectionTitle}>Work Experience</Text>
+          {matchedData.experience.map((exp: any, index: number) => (
+            <View key={index} style={styles.subsection}>
+              <View style={styles.leftColumn}>
+                <Text style={styles.jobTitle}>{exp.title}</Text>
+                <Text style={styles.companyName}>{exp.company}</Text>
+                <Text style={styles.text}>{exp.formatted_address}</Text>
+                {exp.description.split('. ').map((sentence: string, i: number) => (
+                  <Text key={i} style={styles.bulletPoint}>• {sentence.trim()}</Text>
+                ))}
+              </View>
+              <View style={styles.rightColumn}>
+                <Text style={styles.text}>{`${exp.period.start_date} - ${exp.period.end_date}`}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Skills</Text>
           <Text style={styles.text}>{matchedData.skills.join(', ')}</Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.subHeader}>Languages</Text>
+          <Text style={styles.sectionTitle}>Languages</Text>
           <Text style={styles.text}>
             {matchedData.languages.map((lang: any) => lang.name).join(', ')}
           </Text>
@@ -94,9 +166,7 @@ export interface Job {
   salary_range: string;
   posted_date: string;
   image?: string;
-  employmentType: string;
-  datePosted: string;
-  salaryRange: string;
+  company_image?: string;
   url: string;
 }
 
@@ -148,120 +218,197 @@ export default function JobSearchPage() {
     jobTitles: string[];
     jobType: string[];
     workModel: string[];
+    locations: string[];
     datePosted: string;
   }>({
     jobTitles: [],
     jobType: [],
     workModel: [],
+    locations: [],
     datePosted: '',
   })
   const supabase = createClient()
   const [generatingResume, setGeneratingResume] = useState<{ [key: string]: boolean }>({});
   const [generationProgress, setGenerationProgress] = useState<{ [key: string]: number }>({});
   const filterPanelRef = useRef<HTMLDivElement>(null)
+  const [isMounted, setIsMounted] = useState(true);
+  const [imageError, setImageError] = useState<{ [key: string]: boolean }>({});
+
+  // Create memoized lists of unique job titles and locations
+  const uniqueJobTitles = useMemo(() => {
+    const titles = Array.from(new Set(jobListings.map(job => job.title)));
+    return titles.map(title => ({ value: title, label: title }));
+  }, [jobListings]);
+
+  const uniqueLocations = useMemo(() => {
+    let locations;
+    if (filters.jobTitles.length > 0) {
+      locations = Array.from(new Set(jobListings
+        .filter(job => filters.jobTitles.includes(job.title))
+        .map(job => job.location)));
+    } else {
+      locations = Array.from(new Set(jobListings.map(job => job.location)));
+    }
+    return locations.map(location => ({ value: location, label: location }));
+  }, [jobListings, filters.jobTitles]);
 
   useEffect(() => {
-    
-    async function getUserPreferences() {
+    const fetchUserAndPreferences = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
       if (user) {
-        console.log('user: ', user)
+        setUser(user)
+        // Fetch user preferences
         const { data: preferences, error } = await supabase
-          .from('UserPreferences')
+          .from('user_preferences')
           .select('*')
           .eq('user_id', user.id)
           .single()
 
-        if (error) {
-          console.error('Error fetching user preferences:', error)
-        } else if (preferences) {
-          console.log('preferences: ', preferences)
-          setFilters({
-            jobTitles: preferences.preferred_positions || [],
-            jobType: preferences.preferred_job_types || [],
-            workModel: preferences.preferred_locations || [],
-            // location: preferences.preferred_locations?.[0] || '',
-            // experienceLevel: preferences.preferred_experience_levels || [],
-            // requiredExperience: [0, 11],
-            datePosted: 'month',
-          })
+        if (preferences && !error) {
+          // Update filters based on user preferences
+          setFilters(prevFilters => ({
+            ...prevFilters,
+            jobTitles: preferences.preferred_job_titles || [],
+            locations: preferences.preferred_locations || [],
+            // Add other preferences as needed
+          }))
         }
-      }
-      else {
-        router.push('/')
+
+        // Fetch jobs based on user preferences
+        handleApplyFilters()
+      } else {
+        router.push('/login')
       }
     }
 
-    getUserPreferences()
+    fetchUserAndPreferences()
   }, [])
 
   useEffect(() => {
-    handleFetchJobs()
-  }, [filters])
+    return () => {
+      setIsMounted(false);
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log('useEffect for fetching jobs triggered');
+    let isCancelled = false;
+    
+    const fetchJobs = async () => {
+      if (!isCancelled) {
+        await handleFetchJobs();
+      }
+    };
+
+    fetchJobs();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [filters]);
 
   const handleFetchJobs = async () => {
+    console.log('handleFetchJobs called');
+    if (!isMounted) return;
     setIsLoading(true);
+    console.log('isLoading set to true');
     try {
-      if (localStorage.getItem('jobListings') && JSON.parse(localStorage.getItem('jobListings') || '[]').length > 0) {
-        setJobListings(JSON.parse(localStorage.getItem('jobListings') || '[]'));
-      } else {
-        const { data: jobsFromDB, error } = await supabase
-          .from('Jobs')
-          .select('*');
-  
-        if (jobsFromDB && !error) {
-          setJobListings(jobsFromDB);
-          localStorage.setItem('jobListings', JSON.stringify(jobsFromDB));
-        }
-      }
-  
-      if (jobListings.length === 0) {
-        const response = await fetchJobs(filters);
-        if (Array.isArray(response.jobs)) {
-          setJobListings(response.jobs);
-          if (response.jobs.length > 0) {
-            localStorage.setItem('jobListings', JSON.stringify(response.jobs));
-  
-            // Prepare the jobs data for insertion
-            const jobsToInsert = response.jobs.map((job: any) => ({
-              company: job.company,
-              title: job.title,
-              description: job.description,
-              location: job.location,
-              job_type: job.employmentType,
-              salary_range: job.salaryRange,
-              posted_date: job.datePosted,
-              url: job.url
-            }));
-    
-            // Insert all jobs at once
-            const { data: jobData, error } = await supabase
-              .from('Jobs')
-              .upsert(jobsToInsert, { onConflict: 'job_id' })
-              .select();
-    
-            if (error) {
-              console.error('Error inserting jobs:', error);
-            } else {
-              console.log('Jobs inserted:', jobData);
-              if (jobData && jobData.length === 0) {
-                console.warn('No new jobs were inserted. They might already exist in the database.');
+      let jobs: Job[] = [];
+
+      // First, try to fetch from Supabase
+      const { data: jobsFromDB, error } = await supabase
+        .from('Jobs')
+        .select('*')
+        .order('updated_at', { ascending: false });
+
+      if (isMounted) {
+        console.log('Supabase query result:', { jobsFromDB, error });
+
+        if (jobsFromDB && jobsFromDB.length > 0 && !error) {
+          jobs = jobsFromDB;
+          console.log('Jobs fetched from Supabase:', jobs);
+        } else {
+          console.log('No jobs found in Supabase or an error occurred. Fetching from API...');
+          // If no jobs in Supabase, fetch from API
+          const response = await fetchJobs(filters);
+          if (Array.isArray(response.jobs)) {
+            jobs = response.jobs.sort((a, b) => 
+              new Date(b.posted_date).getTime() - new Date(a.posted_date).getTime()
+            );
+
+            // Insert fetched jobs into Supabase
+            if (isMounted) {
+              const jobsToInsert = jobs.map((job: Job) => ({
+                company: job.company,
+                title: job.title,
+                description: job.description,
+                location: job.location,
+                job_type: job.job_type,
+                salary_range: job.salary_range,
+                posted_date: job.posted_date,
+                url: job.url,
+                company_image: job.company_image,
+                id: job.id
+              }));
+
+              const { error: insertError } = await supabase
+                .from('Jobs')
+                .upsert(jobsToInsert, { onConflict: 'id' });
+
+              if (insertError) {
+                console.error('Error inserting jobs:', insertError);
               }
             }
           }
         }
+
+        if (isMounted) {
+          flushSync(() => {
+            setJobListings(jobs);
+            setIsLoading(false);
+          });
+          console.log('isLoading set to false');
+          localStorage.setItem('jobListings', JSON.stringify(jobs));
+        }
       }
     } catch (error) {
       console.error('Error fetching jobs:', error);
-      setJobListings([]);
+      if (isMounted) {
+        setJobListings([]);
+      }
     } finally {
-      setIsLoading(false);
+      if (isMounted) {
+        setIsLoading(false);
+        console.log('isLoading set to false');
+      }
     }
   };
 
   const handleFilterChange = (key: string, value: any) => {
-    setFilters(prevFilters => ({ ...prevFilters, [key]: value }))
+    setFilters(prevFilters => {
+      const newFilters = { ...prevFilters, [key]: value };
+      
+      // If job titles changed, reset locations
+      if (key === 'jobTitles') {
+        newFilters.locations = [];
+      }
+      // If locations changed, reset job titles
+      if (key === 'locations') {
+        newFilters.jobTitles = [];
+      }
+      
+      return newFilters;
+    });
+  }
+
+  const handleClearFilters = () => {
+    setFilters({
+      jobTitles: [],
+      jobType: [],
+      workModel: [],
+      locations: [],
+      datePosted: '',
+    });
   }
 
   const handleGenerateResume = async (job: Job) => {
@@ -301,7 +448,7 @@ export default function JobSearchPage() {
       // Create a temporary anchor element and trigger download
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'resume.pdf';
+      link.download = `${updatedJson.personal_info.full_name}_${job.title}_${job.company}_resume.pdf`;
       document.body.appendChild(link);
       link.click();
     
@@ -321,6 +468,56 @@ export default function JobSearchPage() {
     }
   }
 
+  const handleApplyFilters = async () => {
+    setIsLoading(true);
+    try {
+      let jobs: Job[] = [];
+
+      // First, try to fetch from Supabase
+      const { data: jobsFromDB, error } = await supabase
+        .from('Jobs')
+        .select('*')
+        .order('updated_at', { ascending: false });
+
+      if (jobsFromDB && jobsFromDB.length > 0 && !error) {
+        jobs = jobsFromDB;
+        console.log('Jobs fetched from Supabase:', jobs);
+      } else {
+        console.log('No jobs found in Supabase or an error occurred. Fetching from API...');
+        // If no jobs in Supabase, fetch from API
+        const response = await fetchJobs(filters);
+        if (Array.isArray(response.jobs)) {
+          jobs = response.jobs;
+        }
+      }
+
+      // Apply filters
+      const filteredJobs = jobs.filter(job => {
+        return (
+          (filters.jobTitles.length === 0 || filters.jobTitles.includes(job.title)) &&
+          (filters.jobType.length === 0 || filters.jobType.includes(job.job_type)) &&
+          (filters.workModel.length === 0 || filters.workModel.some(model => job.description.toLowerCase().includes(model.toLowerCase()))) &&
+          (filters.locations.length === 0 || filters.locations.includes(job.location))
+        );
+      });
+
+      const sortedJobs = filteredJobs.sort((a, b) => 
+        new Date(b.posted_date).getTime() - new Date(a.posted_date).getTime()
+      );
+
+      console.log('Filtered and sorted jobs:', sortedJobs);
+
+      setJobListings(sortedJobs);
+      localStorage.setItem('jobListings', JSON.stringify(sortedJobs));
+    } catch (error) {
+      console.error('Error fetching or filtering jobs:', error);
+      setJobListings([]);
+    } finally {
+      setIsLoading(false);
+      setShowFilters(false);
+    }
+  };
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (filterPanelRef.current && !filterPanelRef.current.contains(event.target as Node)) {
@@ -334,7 +531,6 @@ export default function JobSearchPage() {
     }
   }, [])
 
-  if (!user) return null 
   return (
     <div className="flex h-screen bg-gray-100">
       <SidePanel />
@@ -383,7 +579,23 @@ export default function JobSearchPage() {
                     <div key={job.id} className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex items-center">
-                          <img src={job.image} alt={job.company} className="w-12 h-12 rounded-full mr-4" />
+                          {((job.image || job.company_image) && !imageError[job.id]) ? (
+                            <img 
+                              src={job.image || job.company_image} 
+                              alt={job.company} 
+                              className="w-12 h-12 rounded-full mr-4 object-cover"
+                              onError={(e) => {
+                                console.error('Image load error:', e);
+                                setImageError(prev => ({ ...prev, [job.id]: true }));
+                              }}
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-full mr-4 bg-gray-200 flex items-center justify-center">
+                              <span className="text-gray-500 font-bold text-lg">
+                                {job.company.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          )}
                           <div>
                             <h2 
                               className="text-xl font-semibold text-gray-800 hover:text-purple-600 cursor-pointer underline"
@@ -405,16 +617,16 @@ export default function JobSearchPage() {
                         </div>
                         <div className="flex items-center">
                           <Clock className="w-4 h-4 mr-1" />
-                          {job.employmentType}
+                          {job.job_type}
                         </div>
                         <div className="flex items-center">
                           <Calendar className="w-4 h-4 mr-1" />
-                          {job.datePosted}
+                          {job.posted_date}
                         </div>
                       </div>
                       
                       <div className="flex justify-end items-center">
-                        {job.salaryRange && <p className="text-sm text-gray-500 mr-auto">{job.salaryRange}</p>}
+                        {job.salary_range && <p className="text-sm text-gray-500 mr-auto">{job.salary_range}</p>}
                         <div className="flex space-x-2">
                           <Button variant="outline" className="text-gray-600">
                             <Heart className="w-4 h-4 mr-1" />
@@ -458,132 +670,40 @@ export default function JobSearchPage() {
               className="absolute top-0 right-0 bottom-0 w-80 bg-white shadow-lg overflow-y-auto z-10"
             >
               <div className="p-6">
-                <h2 className="text-xl font-semibold mb-6">Filters</h2>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-semibold">Filters</h2>
+                  <Button variant="ghost" onClick={handleClearFilters}>Clear All</Button>
+                </div>
               
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Job Title</label>
                     <Select
                       isMulti
-                      options={[...filters.jobTitles.map(title => ({ value: title, label: title })), { value: 'add', label: '+ Add' }]}
-                      onChange={(selected: any) => {
-                        if (selected.some((option: any) => option.value === 'add')) {
-                          const newTitle = prompt('Enter new job title:')
-                          if (newTitle) {
-                            handleFilterChange('jobTitles', [...filters.jobTitles, newTitle])
-                          }
-                        } else {
-                          handleFilterChange('jobTitles', selected.map((option: any) => option.value))
-                        }
+                      options={uniqueJobTitles}
+                      value={filters.jobTitles.map(title => ({ value: title, label: title }))}
+                      onChange={(selected) => {
+                        handleFilterChange('jobTitles', selected.map(option => option.value))
                       }}
-                      placeholder="Select or add job titles"
+                      placeholder="Select job titles"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Job Type</label>
-                    <div className="space-y-2">
-                      {['Full-time', 'Part-time', 'Contract', 'Internship'].map((type) => (
-                        <div key={type} className="flex items-center">
-                          <Checkbox
-                            checked={filters.jobType.includes(type)}
-                            onCheckedChange={(checked: any) => {
-                              if (checked) {
-                                handleFilterChange('jobType', [...filters.jobType, type])
-                              } else {
-                                handleFilterChange('jobType', filters.jobType.filter(t => t !== type))
-                              }
-                            }}
-                          />
-                          <label className="ml-2 text-sm">{type}</label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Work Model</label>
-                    <div className="space-y-2">
-                      {['Onsite', 'Remote', 'Hybrid'].map((model) => (
-                        <div key={model} className="flex items-center">
-                          <Checkbox
-                            checked={filters.workModel.includes(model)}
-                            onCheckedChange={(checked: boolean) => {
-                              if (checked) {
-                                handleFilterChange('workModel', [...filters.workModel, model])
-                              } else {
-                                handleFilterChange('workModel', filters.workModel.filter(m => m !== model))
-                              }
-                            }}
-                          />
-                          <label className="ml-2 text-sm">{model}</label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/*<div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                    <Input
-                      type="text"
-                      value={filters.location}
-                      onChange={(e) => handleFilterChange('location', e.target.value)}
-                      placeholder="Select a city"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Experience Level</label>
-                    <div className="space-y-2">
-                      {['Intern Level', 'Entry Level', 'Mid Level', 'Senior Level', 'Director', 'Executive'].map((level) => (
-                        <Checkbox
-                          key={level}
-                          checked={filters.experienceLevel.includes(level)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              handleFilterChange('experienceLevel', [...filters.experienceLevel, level])
-                            } else {
-                              handleFilterChange('experienceLevel', filters.experienceLevel.filter(l => l !== level))
-                            }
-                          }}
-                          label={level}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Required Experience</label>
-                    <Slider
-                      min={0}
-                      max={11}
-                      step={1}
-                      value={filters.requiredExperience}
-                      onValueChange={(value) => handleFilterChange('requiredExperience', value)}
-                    />
-                    <div className="flex justify-between text-sm text-gray-600 mt-2">
-                      <span>{filters.requiredExperience[0]} years</span>
-                      <span>{filters.requiredExperience[1]} years</span>
-                    </div>
-                  </div> 
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Date Posted</label>
                     <Select
-                      options={[
-                        { value: 'past24hours', label: 'Past 24 hours' },
-                        { value: 'past3days', label: 'Past 3 days' },
-                        { value: 'pastWeek', label: 'Past Week' },
-                        { value: 'pastMonth', label: 'Past Month' },
-                      ]}
-                      value={filters.datePosted}
-                      onChange={(value) => handleFilterChange('datePosted', value)}
-                      placeholder="Select date range"
+                      isMulti
+                      options={uniqueLocations}
+                      value={filters.locations.map(location => ({ value: location, label: location }))}
+                      onChange={(selected) => {
+                        handleFilterChange('locations', selected.map(option => option.value))
+                      }}
+                      placeholder="Select locations"
                     />
-                  </div>*/}
+                  </div>
                 </div>
 
-                <Button onClick={handleFetchJobs} className="w-full mt-6">Apply Filters</Button>
+                <Button onClick={handleApplyFilters} className="w-full mt-6">Apply Filters</Button>
               </div>
             </div>
           )}
