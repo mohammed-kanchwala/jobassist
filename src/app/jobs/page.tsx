@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, MapPin, Clock, Building2, Calendar, CheckCircle, Filter, FileText, Heart } from 'lucide-react'
+import { MoreHorizontal, MapPin, Clock, Building2, Calendar, CheckCircle, Filter, FileText, Heart, X } from 'lucide-react'
 import SidePanel from '@/components/sidepanel'
 import ChatBot from '@/components/chatbot'
 import { createClient } from '@/utils/supabase/client'
@@ -15,6 +15,7 @@ import  Select  from 'react-select'
 import { pdf, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { customResume } from './action'
 import { flushSync } from 'react-dom';
+import { Textarea } from "@/components/ui/textarea"
 
 // Styles for PDF
 const styles = StyleSheet.create({
@@ -233,6 +234,8 @@ export default function JobSearchPage() {
   const filterPanelRef = useRef<HTMLDivElement>(null)
   const [isMounted, setIsMounted] = useState(true);
   const [imageError, setImageError] = useState<{ [key: string]: boolean }>({});
+  const [contactingRecruiter, setContactingRecruiter] = useState<{ [key: string]: boolean }>({});
+  const [recruiterMessage, setRecruiterMessage] = useState<{ [key: string]: string }>({});
 
   // Create memoized lists of unique job titles and locations
   const uniqueJobTitles = useMemo(() => {
@@ -531,6 +534,23 @@ export default function JobSearchPage() {
     }
   }, [])
 
+  const handleContactRecruiter = (jobId: string) => {
+    setContactingRecruiter(prev => ({ ...prev, [jobId]: true }));
+    setRecruiterMessage(prev => ({ ...prev, [jobId]: '' }));
+  };
+
+  const handleCancelContact = (jobId: string) => {
+    setContactingRecruiter(prev => ({ ...prev, [jobId]: false }));
+    setRecruiterMessage(prev => ({ ...prev, [jobId]: '' }));
+  };
+
+  const handleSendMessage = (jobId: string) => {
+    // Implement the logic to send the message here
+    console.log(`Sending message for job ${jobId}: ${recruiterMessage[jobId]}`);
+    // After sending, close the text box
+    handleCancelContact(jobId);
+  };
+
   return (
     <div className="flex h-screen bg-gray-100">
       <SidePanel />
@@ -646,9 +666,16 @@ export default function JobSearchPage() {
                               onClick={() => handleGenerateResume(job)}
                               disabled={generatingResume[job.id]}
                             >
-                              <FileText className="w-6 h-6" />  Download Custom Resume
+                              <FileText className="w-6 h-6" /> Download Custom Resume
                             </Button>
                           )}
+                          <Button 
+                            variant="outline" 
+                            className="text-gray-600 hover:bg-purple-600 hover:text-white"
+                            onClick={() => handleContactRecruiter(job.id)}
+                          >
+                            Contact Recruiters
+                          </Button>
                           <Button 
                             className="bg-purple-600 hover:bg-purple-700"
                             onClick={() => window.open(job.url, '_blank')}
@@ -657,6 +684,31 @@ export default function JobSearchPage() {
                           </Button>
                         </div>
                       </div>
+                      {contactingRecruiter[job.id] && (
+                        <div className="mt-4 bg-gray-100 p-4 rounded-lg">
+                          <div className="flex justify-between items-center mb-2">
+                            <h3 className="text-lg font-semibold">Contact Recruiters</h3>
+                            <Button variant="ghost" onClick={() => handleCancelContact(job.id)}>
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          <Textarea
+                            placeholder="Type your message here..."
+                            value={recruiterMessage[job.id] || ''}
+                            onChange={(e) => setRecruiterMessage(prev => ({ ...prev, [job.id]: e.target.value }))}
+                            className="mb-2"
+                          />
+                          <div className="flex justify-end space-x-2">
+                            <Button variant="outline" onClick={() => handleCancelContact(job.id)}>Cancel</Button>
+                            <Button 
+                              className="bg-purple-600 hover:bg-purple-700"
+                              onClick={() => handleSendMessage(job.id)}
+                            >
+                              Send Message
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))
                 )}
