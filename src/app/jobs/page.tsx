@@ -674,7 +674,7 @@ export default function JobSearchPage() {
                             className="text-gray-600 hover:bg-purple-600 hover:text-white"
                             onClick={() => handleContactRecruiter(job.id)}
                           >
-                            Contact Recruiters
+                            Insider Connection
                           </Button>
                           <Button 
                             className="bg-purple-600 hover:bg-purple-700"
@@ -687,7 +687,7 @@ export default function JobSearchPage() {
                       {contactingRecruiter[job.id] && (
                         <div className="mt-4 bg-gray-100 p-4 rounded-lg">
                           <div className="flex justify-between items-center mb-2">
-                            <h3 className="text-lg font-semibold">Contact Recruiters</h3>
+                            <h3 className="text-lg font-semibold">Insider Connection</h3>
                             <Button variant="ghost" onClick={() => handleCancelContact(job.id)}>
                               <X className="w-4 h-4" />
                             </Button>
