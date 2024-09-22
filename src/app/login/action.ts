@@ -42,5 +42,5 @@ export async function signup(email: string, password: string) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/profile')
+  redirect('/job-preferences')
 }
