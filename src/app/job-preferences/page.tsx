@@ -171,7 +171,7 @@ export default function JobSearchForm() {
         <div className="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-purple-600 rounded-full"></div>
-            <span className="text-xl font-semibold text-gray-800">JobAssist</span>
+            <span className="text-xl font-semibold text-gray-800">Landingear</span>
             <span className="text-sm text-gray-500">Your AI Copilot</span>
           </div>
         </div>
@@ -311,7 +311,7 @@ export default function JobSearchForm() {
 
       <footer className="bg-white border-t">
         <div className="max-w-5xl mx-auto px-4 py-4 text-center text-sm text-gray-500">
-          &copy; 2023 JobAssist. All rights reserved.
+          &copy; 2023 Landingear. All rights reserved.
         </div>
       </footer>
     </div>

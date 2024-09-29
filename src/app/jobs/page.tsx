@@ -16,6 +16,7 @@ import { pdf, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer
 import { customResume } from './action'
 import { flushSync } from 'react-dom';
 import { Textarea } from "@/components/ui/textarea"
+import Link from 'next/link'
 
 // Styles for PDF
 const styles = StyleSheet.create({
@@ -552,19 +553,19 @@ export default function JobSearchPage() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
       <SidePanel />
       <div className="flex-grow flex overflow-hidden">
         <main className="flex-grow p-6 overflow-y-auto relative">
           <header className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">JOBS</h1>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">JOBS</h1>
             <div className="flex space-x-4">
               {["Recommended", "Liked", "Applied"].map((tab) => (
                 <Button
                   key={tab}
                   variant={activeTab === tab ? "default" : "outline"}
                   onClick={() => setActiveTab(tab)}
-                  className={activeTab === tab ? "bg-gray-800 text-white" : "text-gray-600"}
+                  className={activeTab === tab ? "bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-800" : "text-gray-600 dark:text-gray-400"}
                 >
                   {tab}
                   {tab !== "Recommended" && <Badge variant="secondary" className="ml-2">0</Badge>}
@@ -573,11 +574,11 @@ export default function JobSearchPage() {
             </div>
           </header>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <div className="flex justify-between items-center mb-4">
               <div className="flex flex-wrap gap-2">
                 {Object.entries(filters).map(([key, value]) => (
-                  <Badge key={key} variant="secondary" className="bg-gray-200 text-gray-700">
+                  <Badge key={key} variant="secondary" className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                     {`${key}: ${value}`}
                   </Badge>
                 ))}
@@ -589,127 +590,126 @@ export default function JobSearchPage() {
             </div>
 
             {isLoading ? (
-              <div className="text-center py-4">Loading jobs...</div>
+              <div className="text-center py-4 text-gray-600 dark:text-gray-400">Loading jobs...</div>
             ) : (
               <div className="space-y-6">
                 {jobListings.length === 0 ? (
-                  <div className="text-center py-4">No jobs found</div>
+                  <div className="text-center py-4 text-gray-600 dark:text-gray-400">No jobs found</div>
                 ) : (
                   jobListings.map((job: Job) => (
-                    <div key={job.id} className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center">
-                          {((job.image || job.company_image) && !imageError[job.id]) ? (
-                            <img 
-                              src={job.image || job.company_image} 
-                              alt={job.company} 
-                              className="w-12 h-12 rounded-full mr-4 object-cover"
-                              onError={(e) => {
-                                console.error('Image load error:', e);
-                                setImageError(prev => ({ ...prev, [job.id]: true }));
-                              }}
-                            />
-                          ) : (
-                            <div className="w-12 h-12 rounded-full mr-4 bg-gray-200 flex items-center justify-center">
-                              <span className="text-gray-500 font-bold text-lg">
-                                {job.company.charAt(0).toUpperCase()}
-                              </span>
+                    <Link href={`/jobs/${job.id}`} key={job.id}>
+                      <div className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0 last:pb-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex items-center">
+                            {((job.image || job.company_image) && !imageError[job.id]) ? (
+                              <img 
+                                src={job.image || job.company_image} 
+                                alt={job.company} 
+                                className="w-12 h-12 rounded-full mr-4 object-cover"
+                                onError={(e) => {
+                                  console.error('Image load error:', e);
+                                  setImageError(prev => ({ ...prev, [job.id]: true }));
+                                }}
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full mr-4 bg-gray-200 flex items-center justify-center">
+                                <span className="text-gray-500 font-bold text-lg">
+                                  {job.company.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                            )}
+                            <div>
+                              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400 cursor-pointer underline">
+                                {job.title}
+                              </h2>
+                              <p className="text-gray-600 dark:text-gray-400">{job.company}</p>
                             </div>
-                          )}
-                          <div>
-                            <h2 
-                              className="text-xl font-semibold text-gray-800 hover:text-purple-600 cursor-pointer underline"
-                              onClick={() => window.open(job.url, '_blank')}
-                            >
-                              {job.title}
-                            </h2>
-                            <p className="text-gray-600">{job.company}</p>
+                          </div>
+                          <Button variant="ghost">
+                            <MoreHorizontal className="w-5 h-5" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4">
+                          <div className="flex items-center">
+                            <MapPin className="w-4 h-4 mr-1" />
+                            {job.location}
+                          </div>
+                          <div className="flex items-center">
+                            <Clock className="w-4 h-4 mr-1" />
+                            {job.job_type}
+                          </div>
+                          <div className="flex items-center">
+                            <Calendar className="w-4 h-4 mr-1" />
+                            {job.posted_date}
                           </div>
                         </div>
-                        <Button variant="ghost">
-                          <MoreHorizontal className="w-5 h-5" />
-                        </Button>
-                      </div>
-                      <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
-                        <div className="flex items-center">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {job.location}
-                        </div>
-                        <div className="flex items-center">
-                          <Clock className="w-4 h-4 mr-1" />
-                          {job.job_type}
-                        </div>
-                        <div className="flex items-center">
-                          <Calendar className="w-4 h-4 mr-1" />
-                          {job.posted_date}
-                        </div>
-                      </div>
-                      
-                      <div className="flex justify-end items-center">
-                        {job.salary_range && <p className="text-sm text-gray-500 mr-auto">{job.salary_range}</p>}
-                        <div className="flex space-x-2">
-                          <Button variant="outline" className="text-gray-600">
-                            <Heart className="w-4 h-4 mr-1" />
-                          </Button>
-                          <Button variant="outline" className="text-gray-600">
-                            Ask JobAssist
-                          </Button>
-                          {generatingResume[job.id] ? (
-                            <div className="flex items-center space-x-2">
-                              <CircularProgressBar percentage={generationProgress[job.id] || 0} />
-                              <span className="text-sm text-gray-600">Generating...</span>
-                            </div>
-                          ) : (
+                        
+                        <div className="flex justify-end items-center">
+                          {job.salary_range && <p className="text-sm text-gray-500 dark:text-gray-400 mr-auto">{job.salary_range}</p>}
+                          <div className="flex space-x-2">
+                            <Button variant="outline" className="bg-background text-foreground hover:bg-primary/10">
+                              <Heart className="w-4 h-4 mr-1" />
+                            </Button>
+                            <Button variant="outline" className="bg-background text-foreground hover:bg-primary/10">
+                              Ask Landingear
+                            </Button>
+                            {generatingResume[job.id] ? (
+                              <div className="flex items-center space-x-2">
+                                <CircularProgressBar percentage={generationProgress[job.id] || 0} />
+                                <span className="text-sm text-gray-600">Generating...</span>
+                              </div>
+                            ) : (
+                              <Button 
+                                variant="outline" 
+                                className="bg-background text-foreground hover:bg-primary/10" 
+                                onClick={() => handleGenerateResume(job)}
+                                disabled={generatingResume[job.id]}
+                              >
+                                <FileText className="w-6 h-6" /> Download Custom Resume
+                              </Button>
+                            )}
                             <Button 
                               variant="outline" 
-                              className="text-gray-600 hover:bg-purple-600 hover:text-white" 
-                              onClick={() => handleGenerateResume(job)}
-                              disabled={generatingResume[job.id]}
+                              className="bg-background text-foreground hover:bg-primary/10"
+                              onClick={() => handleContactRecruiter(job.id)}
                             >
-                              <FileText className="w-6 h-6" /> Download Custom Resume
+                              Insider Connection
                             </Button>
-                          )}
-                          <Button 
-                            variant="outline" 
-                            className="text-gray-600 hover:bg-purple-600 hover:text-white"
-                            onClick={() => handleContactRecruiter(job.id)}
-                          >
-                            Insider Connection
-                          </Button>
-                          <Button 
-                            className="bg-purple-600 hover:bg-purple-700"
-                            onClick={() => window.open(job.url, '_blank')}
-                          >
-                            Apply Now
-                          </Button>
-                        </div>
-                      </div>
-                      {contactingRecruiter[job.id] && (
-                        <div className="mt-4 bg-gray-100 p-4 rounded-lg">
-                          <div className="flex justify-between items-center mb-2">
-                            <h3 className="text-lg font-semibold">Insider Connection</h3>
-                            <Button variant="ghost" onClick={() => handleCancelContact(job.id)}>
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
-                          <Textarea
-                            placeholder="Type your message here..."
-                            value={recruiterMessage[job.id] || ''}
-                            onChange={(e) => setRecruiterMessage(prev => ({ ...prev, [job.id]: e.target.value }))}
-                            className="mb-2"
-                          />
-                          <div className="flex justify-end space-x-2">
-                            <Button variant="outline" onClick={() => handleCancelContact(job.id)}>Cancel</Button>
                             <Button 
-                              className="bg-purple-600 hover:bg-purple-700"
-                              onClick={() => handleSendMessage(job.id)}
+                              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                              onClick={() => window.open(job.url, '_blank')}
                             >
-                              Send Message
+                              Apply Now
                             </Button>
                           </div>
                         </div>
-                      )}
-                    </div>
+                        {contactingRecruiter[job.id] && (
+                          <div className="mt-4 bg-gray-100 p-4 rounded-lg">
+                            <div className="flex justify-between items-center mb-2">
+                              <h3 className="text-lg font-semibold">Insider Connection</h3>
+                              <Button variant="ghost" onClick={() => handleCancelContact(job.id)}>
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                            <Textarea
+                              placeholder="Type your message here..."
+                              value={recruiterMessage[job.id] || ''}
+                              onChange={(e) => setRecruiterMessage(prev => ({ ...prev, [job.id]: e.target.value }))}
+                              className="mb-2"
+                            />
+                            <div className="flex justify-end space-x-2">
+                              <Button variant="outline" onClick={() => handleCancelContact(job.id)}>Cancel</Button>
+                              <Button 
+                                className="bg-background text-foreground hover:bg-primary/10"
+                                onClick={() => handleSendMessage(job.id)}
+                              >
+                                Send Message
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </Link>
                   ))
                 )}
               </div>
@@ -719,11 +719,11 @@ export default function JobSearchPage() {
           {showFilters && (
             <div 
               ref={filterPanelRef}
-              className="absolute top-0 right-0 bottom-0 w-80 bg-white shadow-lg overflow-y-auto z-10"
+              className="absolute top-0 right-0 bottom-0 w-80 bg-white dark:bg-gray-800 shadow-lg overflow-y-auto z-10"
             >
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-semibold">Filters</h2>
+                  <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">Filters</h2>
                   <Button variant="ghost" onClick={handleClearFilters}>Clear All</Button>
                 </div>
               
@@ -761,7 +761,7 @@ export default function JobSearchPage() {
           )}
         </main>
         
-        <div className="w-80 flex-shrink-0 border-l border-gray-200">
+        <div className="w-80 flex-shrink-0 border-l border-gray-200 dark:border-gray-700">
           <ChatBot />
         </div>
       </div>

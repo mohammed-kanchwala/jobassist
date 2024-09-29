@@ -122,36 +122,30 @@ const addUserDetails = async () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
     >
-      <Card className="w-full max-w-md bg-[#1a1a1a] text-white border-[#333]">
+      <Card className="w-full max-w-md bg-background text-white">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-bold">Authentication</CardTitle>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <ArrowLeft className="h-6 w-6" />
-            </Button>
-          </div>
-          <div className="flex justify-center space-x-2 mt-4">
-            <button
-              className={`px-4 py-2 rounded-full ${!isSignUp ? 'bg-[#8b5cf6] text-white' : 'text-white'}`}
-              onClick={() => setIsSignUp(false)}
-            >
-              Sign In
+          <div className="flex items-center justify-between mb-4">
+            <button onClick={onClose} className="text-primary hover:text-white">
+              <ArrowLeft size={24} />
             </button>
             <button
-              className={`px-4 py-2 rounded-full ${isSignUp ? 'bg-[#8b5cf6] text-white' : 'text-white'}`}
-              onClick={() => setIsSignUp(true)}
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-primary hover:text-white"
             >
-              Sign Up
+              {isSignUp ? 'Sign In' : 'Sign Up'}
             </button>
           </div>
           
+          <CardTitle className="text-2xl font-bold text-center">
+            {isSignUp ? 'Create an Account' : 'Welcome Back'}
+          </CardTitle>
 
-          <CardDescription className="text-gray-400 mt-2">
+          <CardDescription className="text-primary mt-2">
             {isSignUp ? 'Create your account to get started' : 'Welcome back! Please enter your details'}
           </CardDescription>
         </CardHeader>
@@ -163,7 +157,7 @@ const addUserDetails = async () => {
                   type="text"
                   name="fullName"
                   placeholder="Full Name"
-                  className="bg-[#2a2a2a] border-[#333] text-white placeholder-gray-500"
+                  className="bg-[#0A2A40] border-primary text-white placeholder-primary"
                   value={formData.fullName}
                   onChange={handleInputChange}
                 />
@@ -175,7 +169,7 @@ const addUserDetails = async () => {
                 type="email"
                 name="email"
                 placeholder="Email"
-                className="bg-[#2a2a2a] border-[#333] text-white placeholder-gray-500"
+                className="bg-[#0A2A40] border-primary text-white placeholder-primary"
                 value={formData.email}
                 onChange={handleInputChange}
               />
@@ -186,25 +180,25 @@ const addUserDetails = async () => {
                 type="password"
                 name="password"
                 placeholder="Password"
-                className="bg-[#2a2a2a] border-[#333] text-white placeholder-gray-500"
+                className="bg-[#0A2A40] border-primary text-white placeholder-primary"
                 value={formData.password}
                 onChange={handleInputChange}
               />
               {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
             </div>
-            <Button type="submit" className="w-full bg-[#8b5cf6] hover:bg-[#7c3aed]">
+            <Button type="submit" className="w-full bg-primary text-background hover:bg-[#5FFFC1]">
               {isSignUp ? 'Sign Up' : 'Sign In'}
             </Button>
           </form>
           <div className="mt-4 flex items-center justify-between">
-            <hr className="w-full border-t border-gray-600" />
-            <span className="px-2 text-gray-400">or</span>
-            <hr className="w-full border-t border-gray-600" />
+            <hr className="w-full border-t border-primary" />
+            <span className="px-2 text-primary">or</span>
+            <hr className="w-full border-t border-primary" />
           </div>
           <Button
             type="button"
             variant="outline"
-            className="mt-4 w-full border-gray-600 text-white hover:bg-gray-700"
+            className="mt-4 w-full border-primary text-white hover:bg-[#0A2A40]"
             onClick={handleGoogleSignIn}
           >
             <FcGoogle className="mr-2 h-5 w-5" />

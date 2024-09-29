@@ -18,29 +18,27 @@ export default function SidePanel () {
   }
 
   return (
-    /* Left Sidebar */
-    <aside className="w-16 bg-white border-r border-gray-200 flex flex-col items-center py-4 space-y-6">
-      
+    <aside className="w-16 bg-background border-r border-border flex flex-col items-center py-4 space-y-6">
       <nav className="flex flex-col items-center space-y-6">
-      <Link href="/jobs" className={`${pathname === '/jobs' ? 'w-10 h-10 bg-purple-700 rounded-full flex items-center justify-center' : 'text-gray-400 hover:text-purple-600'} `}>
-        <Briefcase className="w-6 h-6" />
+        <Link href="/jobs" className={`${pathname === '/jobs' ? 'w-10 h-10 bg-primary rounded-full flex items-center justify-center' : 'text-foreground hover:text-primary'} `}>
+          <Briefcase className="w-6 h-6" />
         </Link>
-        <Link href="/resume" className={`${pathname === '/resume' ? 'w-10 h-10 bg-purple-700 rounded-full flex items-center justify-center' : 'text-gray-400 hover:text-purple-600'} `}>
-        <FileText className="w-6 h-6" />
+        <Link href="/resume" className={`${pathname === '/resume' ? 'w-10 h-10 bg-primary rounded-full flex items-center justify-center' : 'text-foreground hover:text-primary'} `}>
+          <FileText className="w-6 h-6" />
         </Link>
-        <Link href="/profile" className={`${pathname === '/profile' ? 'w-10 h-10 bg-purple-700 rounded-full flex items-center justify-center' : 'text-gray-400 hover:text-purple-600'} `}>
+        <Link href="/profile" className={`${pathname === '/profile' ? 'w-10 h-10 bg-primary rounded-full flex items-center justify-center' : 'text-foreground hover:text-primary'} `}>
           <User className="w-6 h-6" />
         </Link>
       </nav>
 
       <div className="flex-grow" />
-      <Link href="#" className="text-gray-400 hover:text-purple-600">
+      <Link href="#" className="text-foreground hover:text-primary">
         <Gift className="w-6 h-6" />
       </Link>
-      <Link href="#" onClick={handleFeedback} className="text-gray-400 hover:text-purple-600">
+      <Link href="#" onClick={handleFeedback} className="text-foreground hover:text-primary">
         <HelpCircle className="w-6 h-6" />
       </Link>
-      <Link href="/" onClick={handleLogout} className="text-gray-400 hover:text-purple-600">
+      <Link href="/" onClick={handleLogout} className="text-foreground hover:text-primary">
         <LogOut className="w-6 h-6" />
       </Link>
     </aside>      

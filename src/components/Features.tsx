@@ -15,17 +15,17 @@ export default function Features() {
   return (
     <>
     {/* Features Section */}
-    <section className="py-20 bg-gradient-to-r from-purple-400 to-blue-200">
+    <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold mb-12 text-center text-gray-800">Why Choose JobAssist</h2>
+          <h2 className="text-4xl font-bold mb-12 text-center text-foreground">Why Choose Landingear</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="bg-white p-6 rounded-lg shadow-lg transform transition-all hover:scale-105 hover:shadow-2xl">
+              <div key={index} className="bg-card p-6 rounded-lg shadow-lg transform transition-all hover:scale-105 hover:shadow-2xl">
                 <div className="flex items-center mb-4">
-                  <CheckCircle className="text-purple-600" size={32} />
-                  <h3 className="text-xl font-semibold ml-4 text-gray-800">{feature.title}</h3>
+                  <CheckCircle className="text-primary" size={32} />
+                  <h3 className="text-xl font-semibold ml-4 text-foreground">{feature.title}</h3>
                 </div>
-                <p className="text-gray-600 text-sm">{feature.description}</p>
+                <p className="text-muted-foreground text-sm">{feature.description}</p>
               </div>
             ))}
           </div>

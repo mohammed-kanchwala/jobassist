@@ -1,6 +1,5 @@
 "use client"
 import { useSession } from 'next-auth/react'
-import JobListing from '@/components/JobListing'
 import Header from '@/components/Header'
 import Hero from '@/components/Hero'
 import Features from '@/components/Features'
@@ -32,7 +31,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-white overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground overflow-hidden">
     <Header />
     <main>
       <Hero />
